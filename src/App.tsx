@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 import * as Three from "three";
 const OrbitControls = require("three-orbit-controls")(Three);
-const FBXLoader = require("./lib/FBXLoader");
 
+const FBXLoader = require("./lib/FBXLoader");
 import { FullscreenCanvas } from "./components/FullscreenCanvas";
 import { useAnimationFrame } from "./hooks/AnimationFrame";
 import { useKeyboardPress } from "./hooks/KeyboardPress";

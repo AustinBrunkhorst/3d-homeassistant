@@ -20,10 +20,7 @@
 
 /* eslint-disable */
 
-const {
-    Zlib
-} = require('zlibjs/bin/zlib.min');
-
+const pako = require("pako");
 const THREE = require("three");
 
 module.exports = (function () {
@@ -3561,14 +3558,8 @@ module.exports = (function () {
 
                     }
 
-                    if (typeof Zlib === 'undefined') {
-
-                        console.error('THREE.FBXLoader: External library Inflate.min.js required, obtain or import from https://github.com/imaya/zlib.js');
-
-                    }
-
-                    var inflate = new Zlib.Inflate(new Uint8Array(reader.getArrayBuffer(compressedLength))); // eslint-disable-line no-undef
-                    var reader2 = new BinaryReader(inflate.decompress().buffer);
+                    var inflated = pako.inflate(new Uint8Array(reader.getArrayBuffer(compressedLength))); // eslint-disable-line no-undef
+                    var reader2 = new BinaryReader(inflated.buffer);
 
                     switch (type) {
 
