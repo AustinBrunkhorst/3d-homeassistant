@@ -79,15 +79,19 @@ export const App = () => {
           models.children.filter(child => child.name.startsWith("room"))
         );
 
+        const width2Height = window.innerWidth  / window.innerHeight;
+        const height2Width = window.innerHeight / window.innerWidth;
+        const finalWidth = maxWidth  * (width2Height > 1.0 ? width2Height : 1.0);
+        const finalHeight = maxHeight * (height2Width > 1.0 ? height2Width : 1.0);
         const frustumSize = Math.min(maxWidth, maxHeight);
 
-        orthoCamera.current.left = (frustumSize * aspect) / -2;
-        orthoCamera.current.right = (frustumSize * aspect) / 2;
-        orthoCamera.current.top = frustumSize / 2;
-        orthoCamera.current.bottom = frustumSize / -2;
+        orthoCamera.current.left  = -finalWidth;
+        orthoCamera.current.right = finalWidth;
+        orthoCamera.current.top = finalHeight;
+        orthoCamera.current.bottom = -finalHeight;
         orthoCamera.current.near = 0.01;
         orthoCamera.current.far = 100;
-        orthoCamera.current.zoom = 0.36;
+        orthoCamera.current.zoom = 1;
         orthoCamera.current.updateProjectionMatrix();
 
         camera.current = orthoCamera.current;
@@ -136,29 +140,19 @@ function fitOrthoDimensionsToObjects(
 ): [number, number] {
   let maxWidth = -Infinity;
   let maxHeight = -Infinity;
-
-  const cameraWorldPos = new Three.Vector3();
-  camera.getWorldPosition(cameraWorldPos);
-
   const box = new Three.Box3();
-  let cameraWorldDir = new Three.Vector3();
+  const cameraRight = new Three.Vector3(1, 0, 0);
+  const cameraUp = new Three.Vector3(0, 1, 0);
 
-  camera.getWorldDirection(cameraWorldDir);
-
-  let cameraUp = new Three.Vector3().copy(cameraWorldDir);
-  cameraUp.multiply(new Three.Vector3(0, 1, 0));
-
-  let cameraRight = new Three.Vector3().copy(cameraWorldDir);
-  cameraRight.multiply(new Three.Vector3(1, 0, 0));
+  camera.updateMatrixWorld(true);
 
   for (const child of objects) {
     box.setFromObject(child);
 
     for (const vert of getBoxVerts(box)) {
-      const cameraToVert = vert.sub(cameraWorldPos);
-
-      maxWidth = Math.max(maxWidth, Math.abs(cameraRight.dot(cameraToVert)));
-      maxHeight = Math.max(maxHeight, Math.abs(cameraUp.dot(cameraToVert)));
+      vert.applyMatrix4(camera.matrixWorldInverse);
+      maxWidth = Math.max(maxWidth, Math.abs(cameraRight.dot(vert)));
+      maxHeight = Math.max(maxHeight, Math.abs(cameraUp.dot(vert)));
     }
   }
 
