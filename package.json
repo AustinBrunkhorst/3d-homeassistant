@@ -43,10 +43,7 @@
     "eslint-config-react-app": "^3.0.7",
     "eslint-plugin-flowtype": "2.x",
     "eslint-plugin-import": "2.x",
-    "eslint-plugin-jsx-a11y": "6.x",
     "eslint-plugin-react": "7.x",
-    "eslint-plugin-react-hooks": "^1.0.2",
-    "exports-loader": "^0.7.0",
-    "imports-loader": "^0.8.0"
+    "eslint-plugin-react-hooks": "^1.0.2"
   }
 }
