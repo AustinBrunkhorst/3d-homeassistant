@@ -6,50 +6,72 @@ import {
   Color,
   Box3,
   Vector3,
-  Object3D
+  Object3D,
+  PointLight,
+  Light
 } from "three";
 
 import { Nullable } from "../util/Types";
 import { Room } from "../scene/Room";
+import { fitObjectsInViewport } from "../util/Camera";
 import { loadFbxFile } from "../util/Model";
-import { fitOrthoDimensionsToObjects as fitFrustumDimensionsToObjects } from "../util/Camera";
 import { useAnimationFrame } from "./common/AnimationFrame";
 import { useEventListener } from "./common/EventListener";
 
+const roomFbxPath = "assets/models/rooms.fbx";
+
+// object name for the parent of all rooms
+const rootRoomsObjectName = "rooms";
+
 // object name prefix for room groups
 const roomObjectNamePrefix = "room";
+
+// object name prefix for light groups within rooms
+const lightObjectNamePrefix = "light";
+
+const globalDirectionalLightObjectName = "directionalLight";
 
 export function useHomeController(
   renderer: MutableRefObject<Nullable<WebGLRenderer>>,
   setReady: (ready: boolean) => void
 ) {
   const camera = useRef<Nullable<OrthographicCamera>>(null);
-  const scene = useRef<Nullable<Scene>>(null);
 
   const rooms = useRef<Room[]>([]);
 
   const loadRooms = async () => {
-    if (!renderer.current || !scene.current) {
-      throw new Error("renderer and scene musn't be null");
+    if (!renderer.current) {
+      throw new Error("renderer was null");
     }
 
-    const object = await loadFbxFile("assets/models/rooms.fbx");
+    const sceneGraph = await loadFbxFile(roomFbxPath);
 
-    scene.current.add(object);
+    const roomsRoot = sceneGraph.getObjectByName(rootRoomsObjectName);
 
-    const roomObjects: Object3D[] = object.children.filter(child =>
+    if (!roomsRoot) {
+      throw new Error(`Expected object with name "${rootRoomsObjectName}"`);
+    }
+
+    const roomObjects: Object3D[] = sceneGraph.children.filter(child =>
       child.name.startsWith(roomObjectNamePrefix)
     );
 
-    rooms.current = roomObjects.map(object => ({
-      object,
-      name: object.name.substr(roomObjectNamePrefix.length)
-    }));
+    rooms.current = roomObjects.map(createRoomFromObject);
+
+    const directionalLight = sceneGraph.getObjectByName(
+      globalDirectionalLightObjectName
+    );
+
+    if (directionalLight) {
+      for (const { scene } of rooms.current) {
+        scene.add(directionalLight.clone());
+      }
+    }
 
     const box = new Box3();
     const sceneCenter = new Vector3();
 
-    box.setFromObject(object);
+    box.setFromObject(sceneGraph);
     box.getCenter(sceneCenter);
 
     const orthoCamera = new OrthographicCamera(0, 0, 0, 0);
@@ -60,22 +82,35 @@ export function useHomeController(
     orthoCamera.position.add(new Vector3(-30, 25, -30));
     orthoCamera.lookAt(sceneCenter);
 
-    scene.current.add(orthoCamera);
-
     fitObjectsInViewport(renderer.current, orthoCamera, roomObjects);
 
     setReady(true);
   };
 
   useEffect(() => {
-    scene.current = createScene();
-
     loadRooms();
   }, []);
 
-  useAnimationFrame(() => {
-    if (renderer.current && scene.current && camera.current) {
-      renderer.current.render(scene.current, camera.current);
+  useAnimationFrame(time => {
+    if (renderer.current && camera.current) {
+      for (const { lights } of rooms.current) {
+        for (const light of lights) {
+          light.color.setHSL(
+            (light.userData.hueOffset + time / light.userData.transitionSpeed) %
+              360,
+            1,
+            0.5
+          );
+        }
+      }
+
+      renderer.current.autoClear = false;
+
+      renderer.current.clear();
+
+      for (const { scene } of rooms.current) {
+        renderer.current.render(scene, camera.current);
+      }
     }
   });
 
@@ -90,42 +125,45 @@ export function useHomeController(
   });
 }
 
-function createScene() {
-  const scene = new Scene();
+function createRoomFromObject(rootObject: Object3D) {
+  const object = rootObject.clone();
 
-  scene.background = new Color(0x3a362c);
+  const name = object.name.substr(roomObjectNamePrefix.length);
 
-  return scene;
+  const lightTransforms = object.children.filter(child =>
+    child.name.startsWith(lightObjectNamePrefix)
+  ) as Light[];
+
+  const scene = createRoomScene();
+
+  const lights = lightTransforms.map(transform => {
+    const hue = Math.floor(Math.random() * 360);
+
+    const light = new PointLight(new Color().setHSL(hue, 1, 0.5), 0.75, 50);
+
+    light.userData.hueOffset = hue;
+    light.userData.transitionSpeed = Math.random() * 20000 + 3000;
+
+    light.shadow.bias = 0.0001;
+    light.castShadow = true;
+
+    light.position.copy(transform.position);
+
+    object.add(light);
+
+    return light;
+  });
+
+  object.traverse(child => {
+    child.castShadow = true;
+    child.receiveShadow = true;
+  });
+
+  scene.add(object);
+
+  return { name, scene, object, lights };
 }
 
-function fitObjectsInViewport(
-  renderer: WebGLRenderer,
-  camera: OrthographicCamera,
-  objects: Object3D[]
-) {
-  const { width, height } = renderer.getSize();
-
-  const width2Height = width / height;
-  const height2Width = height / width;
-
-  const [maxFrustumWidth, maxFrustumHeight] = fitFrustumDimensionsToObjects(
-    camera,
-    objects
-  );
-
-  const frustumWidth =
-    maxFrustumWidth * (width2Height > 1.0 ? width2Height : 1.0);
-
-  const frustumHeight =
-    maxFrustumHeight * (height2Width > 1.0 ? height2Width : 1.0);
-
-  camera.left = -frustumWidth;
-  camera.right = frustumWidth;
-  camera.top = frustumHeight;
-  camera.bottom = -frustumHeight;
-  camera.near = 0.01;
-  camera.far = 100;
-  camera.zoom = 1;
-
-  camera.updateProjectionMatrix();
+function createRoomScene() {
+  return new Scene();
 }

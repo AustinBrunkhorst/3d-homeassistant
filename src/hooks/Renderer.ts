@@ -1,5 +1,5 @@
 import { useRef, useEffect, RefObject } from "react";
-import { WebGLRenderer } from "three";
+import { WebGLRenderer, PCFSoftShadowMap } from "three";
 
 import { Nullable } from "../util/Types";
 import { useEventListener } from "./common/EventListener";
@@ -16,6 +16,9 @@ export function useWebGLRenderer(canvas: RefObject<HTMLCanvasElement>) {
       canvas: canvas.current,
       antialias: true
     });
+
+    renderer.current.shadowMap.enabled = true;
+    renderer.current.shadowMap.type = PCFSoftShadowMap;
 
     fitRendererToWindow();
 

@@ -17,8 +17,8 @@ render();
 
 //serviceWorker.unregister();
 
-if (module.hot) {
-  module.hot.accept("./App", () => {
-    render();
-  });
-}
+// if (module.hot) {
+//   module.hot.accept("./App", () => {
+//     render();
+//   });
+// }
