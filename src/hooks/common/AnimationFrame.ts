@@ -2,17 +2,17 @@
 
 import { useRef, useLayoutEffect } from "react";
 
-export function useAnimationFrame(callback: Function) {
+export function useAnimationFrame(callback: (time: number) => void) {
   const callbackRef = useRef(callback);
 
   useLayoutEffect(() => {
     callbackRef.current = callback;
   }, [callback]);
 
-  const loop = () => {
+  const loop = (time: number) => {
     frameRef.current = requestAnimationFrame(loop);
-    const cb = callbackRef.current;
-    cb();
+
+    callbackRef.current(time);
   };
 
   const frameRef = useRef(0);
