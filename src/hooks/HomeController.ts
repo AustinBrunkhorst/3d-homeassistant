@@ -73,7 +73,6 @@ export function useHomeController(
 
     if (directionalLight) {
       directionalLight.castShadow = true;
-      (directionalLight as DirectionalLight).shadow.bias = -0.01;
 
       for (const { scene } of rooms.current) {
         scene.add(directionalLight.clone());
@@ -96,8 +95,6 @@ export function useHomeController(
     orthoCamera.far = 200;
     orthoCamera.zoom = 1;
     orthoCamera.lookAt(sceneCenter);
-
-    orthoCamera.updateMatrixWorld(true);
 
     handleResize();
 
@@ -137,6 +134,8 @@ export function useHomeController(
 
   const handleResize = () => {
     if (renderer.current && camera.current && roomObjects.current) {
+      camera.current.updateMatrixWorld(true);
+
       const [newWidth, newHeight] = fitObjectsInViewport(
         window.innerWidth,
         window.innerHeight,
@@ -251,8 +250,7 @@ export function useHomeController(
     selectRoom(1);
   };
 
-  useEventListener(window, "mousedown", advanceRoom);
-  useEventListener(window, "touchstart", advanceRoom);
+  useEventListener(window, "click", advanceRoom);
 }
 
 function createRoomFromObject(rootObject: Object3D) {
