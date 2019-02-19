@@ -1,14 +1,7 @@
-import {
-  OrthographicCamera,
-  Object3D,
-  Box3,
-  Vector3,
-  WebGLRenderer
-} from "three";
-import { getBoxVerts } from "./Math";
+import { OrthographicCamera, Object3D, Box3 } from "three";
 
-const unitX = new Vector3(1, 0, 0);
-const unitY = new Vector3(0, 1, 0);
+import { getBoxVerts } from "./Geometry";
+import { unitX, unitY } from "./Vector";
 
 export function fitOrthoDimensionsToObjects(
   camera: OrthographicCamera,
@@ -25,9 +18,10 @@ export function fitOrthoDimensionsToObjects(
     box.setFromObject(child);
 
     for (const vert of getBoxVerts(box)) {
-      vert.applyMatrix4(camera.matrixWorldInverse);
-      maxWidth = Math.max(maxWidth, Math.abs(unitX.dot(vert)));
-      maxHeight = Math.max(maxHeight, Math.abs(unitY.dot(vert)));
+      const local = vert.clone().applyMatrix4(camera.matrixWorldInverse);
+
+      maxWidth = Math.max(maxWidth, Math.abs(unitX.dot(local)));
+      maxHeight = Math.max(maxHeight, Math.abs(unitY.dot(local)));
     }
   }
 
@@ -35,33 +29,43 @@ export function fitOrthoDimensionsToObjects(
 }
 
 export function fitObjectsInViewport(
-  renderer: WebGLRenderer,
+  viewportWidth: number,
+  viewportHeight: number,
   camera: OrthographicCamera,
   objects: Object3D[]
-) {
-  const { width, height } = renderer.getSize();
-
-  const width2Height = width / height;
-  const height2Width = height / width;
+): [number, number] {
+  const aspect = viewportWidth / viewportHeight;
+  const inverseAspect = viewportHeight / viewportWidth;
 
   const [maxFrustumWidth, maxFrustumHeight] = fitOrthoDimensionsToObjects(
     camera,
     objects
   );
 
-  const frustumWidth =
-    maxFrustumWidth * (width2Height > 1.0 ? width2Height : 1.0);
+  const frustumWidth = maxFrustumWidth * (aspect > 1.0 ? aspect : 1.0);
 
   const frustumHeight =
-    maxFrustumHeight * (height2Width > 1.0 ? height2Width : 1.0);
+    maxFrustumHeight * (inverseAspect > 1.0 ? inverseAspect : 1.0);
 
-  camera.left = -frustumWidth;
-  camera.right = frustumWidth;
-  camera.top = frustumHeight;
-  camera.bottom = -frustumHeight;
-  camera.near = 0.1;
-  camera.far = 100;
-  camera.zoom = 1;
+  return [frustumWidth, frustumHeight];
+}
+
+export function getOrthoDimensions(camera: OrthographicCamera) {
+  const width = camera.right;
+  const height = camera.top;
+
+  return [width, height];
+}
+
+export function setOrthoDimensions(
+  camera: OrthographicCamera,
+  width: number,
+  height: number
+): void {
+  camera.left = -width;
+  camera.right = width;
+  camera.top = height;
+  camera.bottom = -height;
 
   camera.updateProjectionMatrix();
 }

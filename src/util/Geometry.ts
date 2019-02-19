@@ -1,7 +1,7 @@
 import { Box3, Vector3 } from "three";
 
 /**
- * Gets all verticies in world space of the given box
+ * Gets all vertices in world space of the given box
  * @param box
  */
 export function getBoxVerts(box: Box3): Vector3[] {

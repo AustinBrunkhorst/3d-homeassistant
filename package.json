@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "animejs": "^3.0.1",
     "pako": "^1.0.8",
     "react": "^16.8.2",
     "react-app-rewire-hot-loader": "^2.0.1",
@@ -39,11 +40,6 @@
     "@types/styled-components": "^4.1.10",
     "@types/three": "^0.93.20",
     "@types/webpack-env": "^1.13.7",
-    "babel-eslint": "9.x",
-    "eslint-config-react-app": "^3.0.7",
-    "eslint-plugin-flowtype": "2.x",
-    "eslint-plugin-import": "2.x",
-    "eslint-plugin-react": "7.x",
-    "eslint-plugin-react-hooks": "^1.0.2"
+    "babel-eslint": "9.x"
   }
 }

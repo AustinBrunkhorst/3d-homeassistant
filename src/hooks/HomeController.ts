@@ -8,15 +8,23 @@ import {
   Vector3,
   Object3D,
   PointLight,
-  Light
+  Light,
+  DirectionalLight
 } from "three";
+
+import anime, { AnimeInstance } from "animejs";
 
 import { Nullable } from "../util/Types";
 import { Room } from "../scene/Room";
-import { fitObjectsInViewport } from "../util/Camera";
+import {
+  fitObjectsInViewport,
+  setOrthoDimensions,
+  getOrthoDimensions
+} from "../util/Camera";
 import { loadFbxFile } from "../util/Model";
 import { useAnimationFrame } from "./common/AnimationFrame";
 import { useEventListener } from "./common/EventListener";
+import { useKeyboardPress } from "./common/KeyboardPress";
 
 const roomFbxPath = "assets/models/rooms.fbx";
 
@@ -37,6 +45,7 @@ export function useHomeController(
 ) {
   const camera = useRef<Nullable<OrthographicCamera>>(null);
 
+  const roomObjects = useRef<Nullable<Object3D[]>>(null);
   const rooms = useRef<Room[]>([]);
 
   const loadRooms = async () => {
@@ -52,17 +61,20 @@ export function useHomeController(
       throw new Error(`Expected object with name "${rootRoomsObjectName}"`);
     }
 
-    const roomObjects: Object3D[] = sceneGraph.children.filter(child =>
+    roomObjects.current = roomsRoot.children.filter(child =>
       child.name.startsWith(roomObjectNamePrefix)
     );
 
-    rooms.current = roomObjects.map(createRoomFromObject);
+    rooms.current = roomObjects.current.map(createRoomFromObject);
 
     const directionalLight = sceneGraph.getObjectByName(
       globalDirectionalLightObjectName
     );
 
     if (directionalLight) {
+      directionalLight.castShadow = true;
+      (directionalLight as DirectionalLight).shadow.bias = -0.01;
+
       for (const { scene } of rooms.current) {
         scene.add(directionalLight.clone());
       }
@@ -80,9 +92,14 @@ export function useHomeController(
 
     orthoCamera.position.copy(sceneCenter);
     orthoCamera.position.add(new Vector3(-30, 25, -30));
+    orthoCamera.near = 0.1;
+    orthoCamera.far = 200;
+    orthoCamera.zoom = 1;
     orthoCamera.lookAt(sceneCenter);
 
-    fitObjectsInViewport(renderer.current, orthoCamera, roomObjects);
+    orthoCamera.updateMatrixWorld(true);
+
+    handleResize();
 
     setReady(true);
   };
@@ -92,6 +109,10 @@ export function useHomeController(
   }, []);
 
   useAnimationFrame(time => {
+    if (cameraAnimation.current && !cameraAnimation.current.completed) {
+      cameraAnimation.current.tick(time);
+    }
+
     if (renderer.current && camera.current) {
       for (const { lights } of rooms.current) {
         for (const light of lights) {
@@ -114,15 +135,124 @@ export function useHomeController(
     }
   });
 
-  useEventListener(window, "resize", () => {
-    if (renderer.current && camera.current) {
-      fitObjectsInViewport(
-        renderer.current,
+  const handleResize = () => {
+    if (renderer.current && camera.current && roomObjects.current) {
+      const [newWidth, newHeight] = fitObjectsInViewport(
+        window.innerWidth,
+        window.innerHeight,
         camera.current,
-        rooms.current.map(({ object }) => object)
+        getActiveRooms()
       );
+
+      setOrthoDimensions(camera.current, newWidth, newHeight);
     }
-  });
+  };
+
+  useEventListener(window, "resize", () => handleResize());
+
+  const cameraAnimation = useRef<Nullable<AnimeInstance>>(null);
+  const cameraAnimationState = useRef<Nullable<any>>(null);
+  const selectedRoom = useRef(0);
+
+  const getActiveRooms = () => {
+    if (!roomObjects.current) {
+      return [];
+    }
+
+    // 0 is all, the rest are offset by 1
+    const roomIndex = Math.abs(selectedRoom.current);
+
+    return roomIndex === 0
+      ? roomObjects.current
+      : [roomObjects.current[roomIndex - 1]];
+  };
+
+  const selectRoom = (delta: number) => {
+    selectedRoom.current =
+      (selectedRoom.current + delta) % (rooms.current.length + 1);
+
+    if (!camera.current || !roomObjects.current || !renderer.current) {
+      return;
+    }
+
+    const activeRooms = getActiveRooms();
+
+    const [width, height] = getOrthoDimensions(camera.current);
+    const { x, y, z } = camera.current.position;
+
+    cameraAnimationState.current = {
+      width,
+      height,
+      x,
+      y,
+      z
+    };
+
+    const includedRoomsBox = new Box3();
+
+    for (const room of activeRooms) {
+      includedRoomsBox.expandByObject(room);
+    }
+
+    const includedRoomsCenter = new Vector3();
+
+    includedRoomsBox.getCenter(includedRoomsCenter);
+
+    const newPosition = includedRoomsCenter
+      .clone()
+      .add(new Vector3(-30, 25, -30));
+
+    const currentPosition = camera.current.position.clone();
+
+    camera.current.position.copy(newPosition);
+
+    camera.current.updateMatrixWorld(true);
+
+    const [targetWidth, targetHeight] = fitObjectsInViewport(
+      window.innerWidth,
+      window.innerHeight,
+      camera.current,
+      activeRooms
+    );
+
+    camera.current.position.copy(currentPosition);
+
+    cameraAnimation.current = anime({
+      targets: cameraAnimationState.current,
+      width: targetWidth,
+      height: targetHeight,
+      x: newPosition.x,
+      y: newPosition.y,
+      z: newPosition.z,
+      duration: 600,
+      easing: "spring(0.65, 100, 14, 10)",
+      autoplay: false,
+      update: () => {
+        if (
+          !camera.current ||
+          !cameraAnimation.current ||
+          !cameraAnimationState.current
+        ) {
+          return;
+        }
+
+        const animState = cameraAnimationState.current;
+
+        camera.current.position.set(animState.x, animState.y, animState.z);
+
+        setOrthoDimensions(camera.current, animState.width, animState.height);
+      }
+    });
+  };
+
+  const advanceRoom = (e: Event) => {
+    e.preventDefault();
+
+    selectRoom(1);
+  };
+
+  useEventListener(window, "mousedown", advanceRoom);
+  useEventListener(window, "touchstart", advanceRoom);
 }
 
 function createRoomFromObject(rootObject: Object3D) {
@@ -137,15 +267,16 @@ function createRoomFromObject(rootObject: Object3D) {
   const scene = createRoomScene();
 
   const lights = lightTransforms.map(transform => {
-    const hue = Math.floor(Math.random() * 360);
+    const hue = Math.random();
 
     const light = new PointLight(new Color().setHSL(hue, 1, 0.5), 0.75, 50);
 
     light.userData.hueOffset = hue;
     light.userData.transitionSpeed = Math.random() * 20000 + 3000;
 
-    light.shadow.bias = 0.0001;
-    light.castShadow = true;
+    light.shadow.bias = -0.01;
+    light.castShadow = false;
+    light.receiveShadow = false;
 
     light.position.copy(transform.position);
 
@@ -155,8 +286,13 @@ function createRoomFromObject(rootObject: Object3D) {
   });
 
   object.traverse(child => {
-    child.castShadow = true;
-    child.receiveShadow = true;
+    if (child.name.startsWith("wall") || child.name.startsWith("floor")) {
+      child.castShadow = false;
+      child.receiveShadow = false;
+    } else {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
   });
 
   scene.add(object);

@@ -17,7 +17,7 @@ export function useWebGLRenderer(canvas: RefObject<HTMLCanvasElement>) {
       antialias: true
     });
 
-    renderer.current.shadowMap.enabled = true;
+    renderer.current.shadowMap.enabled = false;
     renderer.current.shadowMap.type = PCFSoftShadowMap;
 
     fitRendererToWindow();
