@@ -101,6 +101,12 @@ export function useHomeController(
 
   useEffect(() => {
     loadRooms();
+
+    return () => {
+      if (renderer.current) {
+        renderer.current.dispose();
+      }
+    };
   }, []);
 
   useAnimationFrame(time => {
