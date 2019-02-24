@@ -1,5 +1,11 @@
 /// <reference types="react-scripts" />
 
+declare module "*.fbx" {
+  const publicPath: string;
+
+  export default publicPath;
+}
+
 declare module "animejs" {
   // Type definitions for animejs 2.0
   // Project: http://animejs.com

@@ -8,8 +8,7 @@ import {
   Vector3,
   Object3D,
   PointLight,
-  Light,
-  DirectionalLight
+  Light
 } from "three";
 
 import anime, { AnimeInstance } from "animejs";
@@ -21,12 +20,11 @@ import {
   setOrthoDimensions,
   getOrthoDimensions
 } from "../util/Camera";
-import { loadFbxFile } from "../util/Model";
+import { importFbx } from "../util/Model";
 import { useAnimationFrame } from "./common/AnimationFrame";
 import { useEventListener } from "./common/EventListener";
-import { useKeyboardPress } from "./common/KeyboardPress";
 
-const roomFbxPath = "assets/models/rooms.fbx";
+import roomsModelPath from "../assets/models/rooms.fbx";
 
 // object name for the parent of all rooms
 const rootRoomsObjectName = "rooms";
@@ -53,7 +51,7 @@ export function useHomeController(
       throw new Error("renderer was null");
     }
 
-    const sceneGraph = await loadFbxFile(roomFbxPath);
+    const sceneGraph = await importFbx(roomsModelPath);
 
     const roomsRoot = sceneGraph.getObjectByName(rootRoomsObjectName);
 
