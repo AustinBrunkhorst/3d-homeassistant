@@ -1,5 +1,10 @@
 /// <reference types="react-scripts" />
 
+declare module "*.fbx" {
+  const value: ArrayBuffer;
+  export default value;
+}
+
 declare module "animejs" {
   // Type definitions for animejs 2.0
   // Project: http://animejs.com

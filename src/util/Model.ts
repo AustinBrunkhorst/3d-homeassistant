@@ -1,21 +1,11 @@
-import { IFbxSceneGraph } from "three";
+import { IFbxSceneGraph, Scene } from "three";
 
-const FBXLoader = require("../lib/FBXLoader");
+declare var THREE;
 
-export function loadFbxFile(
-  path: string,
-  onProgress?: (progress: number) => void
-): Promise<IFbxSceneGraph> {
-  return new Promise((resolve, reject) => {
-    const loader = new FBXLoader();
+require("three/examples/js/loaders/FBXLoader");
 
-    loader.load(
-      path,
-      (result: IFbxSceneGraph) => resolve(result),
-      (event: ProgressEvent) =>
-        onProgress &&
-        onProgress(event.lengthComputable ? event.loaded / event.total : 0),
-      (error: Error) => reject(error)
-    );
-  });
+export function importFbxBuffer(buffer: ArrayBuffer): Promise<IFbxSceneGraph> {
+  const loader = new THREE.FBXLoader();
+
+  return Promise.resolve(loader.parse(buffer));
 }
