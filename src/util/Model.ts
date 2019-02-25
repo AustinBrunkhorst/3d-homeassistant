@@ -1,18 +1,17 @@
-const THREE = require("three");
+import { IFbxSceneGraph } from "three";
 
-// this is asinine, but it's tracked
-// https://github.com/mrdoob/three.js/issues/9562
-require("imports-loader?THREE=three,Inflate=zlibjs/bin/inflate.min,Zlib=>Inflate.Zlib!three/examples/js/loaders/FBXLoader");
+const FBXLoader = require("../lib/threejs/FBXLoader");
 
 export function importFbx(
   path: string,
   onProgress?: (progress: number) => void
-): Promise<THREE.IFbxSceneGraph> {
+): Promise<IFbxSceneGraph> {
   return new Promise((resolve, reject) => {
-    const loader = new THREE.FBXLoader();
+    const loader = new FBXLoader();
+
     loader.load(
       path,
-      (result: THREE.IFbxSceneGraph) => resolve(result),
+      (result: IFbxSceneGraph) => resolve(result),
       (event: ProgressEvent) =>
         onProgress &&
         onProgress(event.lengthComputable ? event.loaded / event.total : 0),
