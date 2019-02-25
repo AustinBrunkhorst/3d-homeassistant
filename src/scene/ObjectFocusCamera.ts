@@ -17,6 +17,8 @@ interface AnimationState {
   z: number;
 }
 
+const cameraCenterOffset = new Vector3(-30, 25, -30);
+
 export class ObjectFocusCamera implements SceneComponent {
   public camera: OrthographicCamera = new OrthographicCamera(0, 0, 0, 0, 0, 0);
 
@@ -42,6 +44,9 @@ export class ObjectFocusCamera implements SceneComponent {
 
     this.focusedObjects = objects;
 
+    const currentPosition = this.camera.position.clone();
+    const newPosition = center.clone().add(cameraCenterOffset);
+
     if (animate) {
       const [width, height] = getOrthoDimensions(this.camera);
       const { x, y, z } = this.camera.position;
@@ -53,10 +58,6 @@ export class ObjectFocusCamera implements SceneComponent {
         y,
         z
       };
-
-      const newPosition = center.clone().add(new Vector3(-30, 25, -30));
-
-      const currentPosition = this.camera.position.clone();
 
       this.camera.position.copy(newPosition);
       this.camera.lookAt(center);
@@ -81,7 +82,6 @@ export class ObjectFocusCamera implements SceneComponent {
         x: newPosition.x,
         y: newPosition.y,
         z: newPosition.z,
-        duration: 600,
         easing: "spring(0.65, 100, 14, 11)",
         autoplay: false,
         update: () => {
@@ -95,8 +95,7 @@ export class ObjectFocusCamera implements SceneComponent {
         }
       });
     } else {
-      this.camera.position.copy(center);
-      this.camera.position.add(new Vector3(-30, 25, -30));
+      this.camera.position.copy(newPosition);
       this.camera.lookAt(center);
 
       this.onViewportResize();
