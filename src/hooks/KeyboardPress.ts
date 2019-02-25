@@ -52,7 +52,7 @@ export function useKeyboardPress(params: Parameters) {
       window.document.removeEventListener("keydown", handleKeyDown);
       window.document.removeEventListener("keyup", handleKeyUp);
     };
-  }, []);
+  }, [params.key, params.onKeyDown, params.onKeyUp]);
 
   return isKeyDown;
 }

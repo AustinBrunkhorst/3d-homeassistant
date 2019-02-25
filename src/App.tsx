@@ -1,7 +1,12 @@
 import React from "react";
+import { hot } from "react-hot-loader";
 
-import { IsometricHomeView } from "./components/IsometricHomeView";
+import { CubeRoomSceneView } from "./components/CubeRoomSceneView";
 
-export function App() {
-  return <IsometricHomeView />;
+function App() {
+  return <CubeRoomSceneView />;
 }
+
+const isProd = process.env.NODE_ENV === "production";
+
+export default (isProd ? App : hot(module)(App));

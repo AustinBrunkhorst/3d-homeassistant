@@ -2,41 +2,56 @@ import { useRef, useEffect, RefObject } from "react";
 import { WebGLRenderer, PCFSoftShadowMap } from "three";
 
 import { Nullable } from "../util/Types";
-import { useEventListener } from "./common/EventListener";
+import { useEventListener } from "./EventListener";
 
-export function useWebGLRenderer(canvas: RefObject<HTMLCanvasElement>) {
+export type ResizeCallback = (width: number, height: number) => void;
+
+export function useWebGLRenderer(
+  target: RefObject<HTMLCanvasElement>,
+  onResize?: ResizeCallback
+) {
   const renderer = useRef<Nullable<WebGLRenderer>>(null);
 
   useEffect(() => {
-    if (!canvas.current) {
+    if (!target.current) {
       return;
     }
 
     renderer.current = new WebGLRenderer({
-      canvas: canvas.current,
+      canvas: target.current,
       antialias: true
     });
 
+    updateViewportSize();
+
     renderer.current.shadowMap.enabled = false;
     renderer.current.shadowMap.type = PCFSoftShadowMap;
-
-    fitRendererToWindow();
 
     return () => {
       if (renderer.current) {
         renderer.current.dispose();
       }
     };
-  }, [canvas]);
+  }, [target.current]);
 
-  const fitRendererToWindow = () => {
-    if (renderer.current) {
-      renderer.current.setPixelRatio(window.devicePixelRatio);
-      renderer.current.setSize(window.innerWidth, window.innerHeight);
+  const updateViewportSize = () => {
+    if (!renderer.current || !target.current) {
+      return;
     }
+
+    const { innerWidth, innerHeight } = window;
+
+    renderer.current.setPixelRatio(window.devicePixelRatio);
+    renderer.current.setSize(innerWidth, innerHeight, false);
   };
 
-  useEventListener(window, "resize", fitRendererToWindow);
+  useEventListener(window, "resize", () => {
+    updateViewportSize();
+
+    if (onResize) {
+      onResize(innerWidth, innerHeight);
+    }
+  });
 
   return renderer;
 }

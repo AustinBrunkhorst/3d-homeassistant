@@ -1,4 +1,4 @@
-import { Box3, Vector3 } from "three";
+import { Box3, Vector3, Object3D } from "three";
 
 /**
  * Gets all vertices in world space of the given box
@@ -17,4 +17,18 @@ export function getBoxVerts(box: Box3): Vector3[] {
     new Vector3(max.x, max.y, min.z), // 110
     new Vector3(max.x, max.y, max.z) // 111
   ];
+}
+
+export function getBoundingBoxCenter(objects: Object3D[]) {
+  const box = new Box3();
+
+  for (const object of objects) {
+    box.expandByObject(object);
+  }
+
+  const center = new Vector3();
+
+  box.getCenter(center);
+
+  return center;
 }

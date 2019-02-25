@@ -1,24 +1,13 @@
 import React from "react";
-import ReactDOM from "react-dom";
-//import { AppContainer } from "react-hot-loader";
+import ReactDOM from "@hot-loader/react-dom";
 
-import { App } from "./App";
+import GlobalStyle from "./GlobalStyle";
+import App from "./App";
 
-function render() {
-  ReactDOM.render(
-    //<AppContainer>
-    <App />,
-    //</AppContainer>,
-    document.getElementById("root")
-  );
-}
-
-render();
-
-//serviceWorker.unregister();
-
-// if (module.hot) {
-//   module.hot.accept("./App", () => {
-//     render();
-//   });
-// }
+ReactDOM.render(
+  <>
+    <GlobalStyle />
+    <App />
+  </>,
+  document.getElementById("root")
+);
