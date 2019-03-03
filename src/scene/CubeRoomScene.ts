@@ -105,6 +105,8 @@ export class CubeRoomScene {
   private onViewportTouchStart = e => {
     // prevent black flicker on ios
     e.preventDefault();
+
+    this.onViewportClick(e);
   };
 
   private onViewportClick = e => {
