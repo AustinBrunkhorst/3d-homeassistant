@@ -102,23 +102,36 @@ export class CubeRoomScene {
     domElement.removeEventListener("click", this.onViewportClick);
   }
 
-  private onViewportTouchStart = e => {
+  private onViewportTouchStart = (e: TouchEvent) => {
     // prevent black flicker on ios
     e.preventDefault();
 
-    this.onViewportClick(e);
+    const touch = e.touches[0];
+
+    if (touch) {
+      this.handleViewportClick(touch.clientX, touch.clientY);
+    }
   };
 
-  private onViewportClick = e => {
+  private onViewportClick = (e: MouseEvent) => {
+    this.handleViewportClick(e.clientX, e.clientY);
+  };
+
+  private handleViewportClick(viewportX: number, viewportY: number) {
     this.state.selectedRoomIndex =
       (this.state.selectedRoomIndex + 1) % (this.rooms.length + 1);
 
-    const { x, y, width, height } = e.target.getBoundingClientRect();
+    const {
+      x,
+      y,
+      width,
+      height
+    } = this.renderer.domElement.getBoundingClientRect() as DOMRect;
 
     const ndc = new Vector2();
 
-    ndc.x = ((e.clientX - x) / width) * 2 - 1;
-    ndc.y = -((e.clientY - y) / height) * 2 + 1;
+    ndc.x = ((viewportX - x) / width) * 2 - 1;
+    ndc.y = -((viewportY - y) / height) * 2 + 1;
 
     const raycaster = new Raycaster();
 
@@ -140,7 +153,7 @@ export class CubeRoomScene {
     }
 
     this.camera.focusOnObjects(this.getFocusedObjects(), true);
-  };
+  }
 
   private getFocusedObjects() {
     // 0 is all, the rest are offset by 1
