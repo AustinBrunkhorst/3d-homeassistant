@@ -89,12 +89,23 @@ export class CubeRoomScene {
   }
 
   private bindEvents() {
-    this.renderer.domElement.addEventListener("click", this.onViewportClick);
+    const { domElement } = this.renderer;
+
+    domElement.addEventListener("touchstart", this.onViewportTouchStart);
+    domElement.addEventListener("click", this.onViewportClick);
   }
 
   private unbindEvents() {
-    this.renderer.domElement.removeEventListener("click", this.onViewportClick);
+    const { domElement } = this.renderer;
+
+    domElement.removeEventListener("touchstart", this.onViewportTouchStart);
+    domElement.removeEventListener("click", this.onViewportClick);
   }
+
+  private onViewportTouchStart = e => {
+    // prevent black flicker on ios
+    e.preventDefault();
+  };
 
   private onViewportClick = e => {
     this.state.selectedRoomIndex =
