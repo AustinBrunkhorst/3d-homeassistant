@@ -20,14 +20,14 @@ export class Room implements SceneComponent {
   }
 
   update(time: number) {
-    for (const light of this.lights) {
-      light.color.setHSL(
-        (light.userData.hueOffset + time / light.userData.transitionSpeed) %
-          360,
-        1,
-        0.5
-      );
-    }
+    // for (const light of this.lights) {
+    //   light.color.setHSL(
+    //     (light.userData.hueOffset + time / light.userData.transitionSpeed) %
+    //       360,
+    //     1,
+    //     0.5
+    //   );
+    // }
   }
 
   private buildLights() {

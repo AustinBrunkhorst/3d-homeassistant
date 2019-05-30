@@ -1,13 +1,13 @@
-import { IFbxSceneGraph } from "three";
+import { Object3D } from "three";
 
 const FBXLoader = require("../lib/threejs/FBXLoader");
 
-const sceneCache = new Map<string, IFbxSceneGraph>();
+const sceneCache = new Map<string, Object3D>();
 
 export function importFbx(
   path: string,
   onProgress?: (progress: number) => void
-): Promise<IFbxSceneGraph> {
+): Promise<Object3D> {
   return new Promise((resolve, reject) => {
     const cachedResult = sceneCache.get(path);
 
@@ -21,7 +21,7 @@ export function importFbx(
 
     loader.load(
       path,
-      (result: IFbxSceneGraph) => {
+      (result: Object3D) => {
         const resultCopy = result.clone();
 
         sceneCache.set(path, resultCopy);

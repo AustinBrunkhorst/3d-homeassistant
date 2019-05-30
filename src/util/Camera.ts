@@ -3,7 +3,7 @@ import { OrthographicCamera, Object3D, Box3 } from "three";
 import { getBoxVerts } from "./Geometry";
 import { unitX, unitY } from "./Vector";
 
-export function fitOrthoDimensionsToObjects(
+function fitOrthoDimensionsToObjects(
   camera: OrthographicCamera,
   objects: Object3D[]
 ): [number, number] {

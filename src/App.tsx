@@ -1,11 +1,9 @@
 import React from "react";
-import { hot } from "react-hot-loader";
 
-import { isProd } from "./environment";
-import { CubeRoomSceneView } from "./components/CubeRoomSceneView";
+import { ZoneEditorPage } from "./pages/ZoneEditor";
 
 function App() {
-  return <CubeRoomSceneView />;
+  return <ZoneEditorPage />;
 }
 
-export default (isProd ? App : hot(module)(App));
+export default App;
