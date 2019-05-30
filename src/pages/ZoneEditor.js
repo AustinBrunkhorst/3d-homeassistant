@@ -2,16 +2,9 @@ import * as THREE from "three/src/Three";
 import React, { useState, useRef, useMemo } from "react";
 import { Canvas, useRender } from "react-three-fiber";
 import { useSpring, animated } from "react-spring/three";
-import { styled } from "@material-ui/styles";
-import Box from "@material-ui/core/Box";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemAvatar from "@material-ui/core/ListItemAvatar";
-import Avatar from "@material-ui/core/Avatar";
-import ImageIcon from "@material-ui/icons/Image";
-import WorkIcon from "@material-ui/icons/Work";
-import BeachAccessIcon from "@material-ui/icons/BeachAccess";
+import styled from "styled-components";
+import { Box, Drawer } from "@material-ui/core";
+import PropList from "../components/PropList";
 
 function Octahedron() {
   const [active, setActive] = useState(false);
@@ -53,6 +46,10 @@ function Stars() {
   let group = useRef();
   let theta = 0;
   useRender(() => {
+    if (!group.current) {
+      return;
+    }
+
     // Some things maybe shouldn't be declarative, we're in the render-loop here with full access to the instance
     const r = 5 * Math.sin(THREE.Math.degToRad((theta += 0.1)));
     const s = Math.cos(THREE.Math.degToRad(theta * 2));
@@ -82,106 +79,22 @@ function Stars() {
   );
 }
 
-const ModelListContainer = styled(List)({
-  width: "100%",
-  overflow: "auto"
-});
+const SidebarContainer = styled(Drawer)`
+  overflow-y: auto;
+  flex-shrink: 0;
+  min-width: 300;
+`;
 
-function ModelList() {
-  return (
-    <ModelListContainer>
-      <ListItem>
-        <ListItemAvatar>
-          <Avatar>
-            <ImageIcon />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary="YOLO" secondary="Jan 9, 2014" />
-      </ListItem>
-      <ListItem>
-        <ListItemAvatar>
-          <Avatar>
-            <WorkIcon />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary="Work" secondary="Jan 7, 2014" />
-      </ListItem>
-      <ListItem>
-        <ListItemAvatar>
-          <Avatar>
-            <BeachAccessIcon />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary="Vacation" secondary="July 20, 2014" />
-      </ListItem>
-      <ListItem>
-        <ListItemAvatar>
-          <Avatar>
-            <ImageIcon />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary="Photos" secondary="Jan 9, 2014" />
-      </ListItem>
-      <ListItem>
-        <ListItemAvatar>
-          <Avatar>
-            <WorkIcon />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary="Work" secondary="Jan 7, 2014" />
-      </ListItem>
-      <ListItem>
-        <ListItemAvatar>
-          <Avatar>
-            <BeachAccessIcon />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary="Vacation" secondary="July 20, 2014" />
-      </ListItem>
-      <ListItem>
-        <ListItemAvatar>
-          <Avatar>
-            <ImageIcon />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary="Photos" secondary="Jan 9, 2014" />
-      </ListItem>
-      <ListItem>
-        <ListItemAvatar>
-          <Avatar>
-            <WorkIcon />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary="Work" secondary="Jan 7, 2014" />
-      </ListItem>
-      <ListItem>
-        <ListItemAvatar>
-          <Avatar>
-            <BeachAccessIcon />
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText primary="Vacation" secondary="July 20, 2014" />
-      </ListItem>
-    </ModelListContainer>
-  );
-}
-
-const SidebarContainer = styled(Box)({
-  overflowY: "auto",
-  flexShrink: 0,
-  minWidth: 300
-});
-
-const PageContainer = styled(Box)({
-  height: "100%",
-  overflow: "hidden"
-});
+const PageContainer = styled(Box)`
+  height: 100%;
+  overflow: hidden;
+`;
 
 export function ZoneEditorPage() {
   return (
     <PageContainer display="flex" flexDirection="row">
-      <SidebarContainer>
-        <ModelList />
+      <SidebarContainer variant="permanent">
+        <PropList />
       </SidebarContainer>
       <Box flexGrow={1}>
         <Canvas>
