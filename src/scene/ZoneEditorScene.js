@@ -3,7 +3,7 @@ import { MapControls } from "three/examples/jsm/controls/MapControls";
 import React, { useRef, useEffect } from "react";
 import { extend, Canvas, useThree, useRender } from "react-three-fiber";
 
-import { usePersistedCamera } from "../hooks/ThreeHelpers";
+import { PersistedObject3D } from "../hooks/ThreeHelpers";
 
 extend({ AxesHelper, MapControls });
 
@@ -19,24 +19,24 @@ function EditorCamera() {
   const camera = useRef();
   const controls = useRef();
 
-  const [saveCameraState] = usePersistedCamera("editor.camera", camera.current);
+  //const [saveCameraState] = usePersistedCamera("editor.camera", camera.current);
 
   useEffect(() => {
     setDefaultCamera(camera.current);
 
-    function onControlsUpdated() {
-      saveCameraState(camera.current);
-    }
+    // function onControlsUpdated() {
+    //   saveCameraState(camera.current);
+    // }
 
-    if (controls.current) {
-      controls.current.addEventListener("change", onControlsUpdated);
-    }
+    // if (controls.current) {
+    //   controls.current.addEventListener("change", onControlsUpdated);
+    // }
 
-    return () => {
-      if (controls.current) {
-        controls.current.removeEventListener("change", onControlsUpdated);
-      }
-    };
+    // return () => {
+    //   if (controls.current) {
+    //     controls.current.removeEventListener("change", onControlsUpdated);
+    //   }
+    // };
   }, [camera.current, controls.current]);
 
   useRender(() => {
@@ -47,7 +47,9 @@ function EditorCamera() {
 
   return (
     <>
-      <perspectiveCamera
+      <PersistedObject3D
+        name="editor.camera"
+        renderObject={<perspectiveCamera />}
         ref={camera}
         aspect={size.width / size.height}
         radius={(size.width + size.height) / 4}
@@ -55,6 +57,15 @@ function EditorCamera() {
         position={[10, 10, 5]}
         onUpdate={self => self.updateProjectionMatrix()}
       />
+
+      {/* <perspectiveCamera
+        ref={camera}
+        aspect={size.width / size.height}
+        radius={(size.width + size.height) / 4}
+        fov={55}
+        position={[10, 10, 5]}
+        onUpdate={self => self.updateProjectionMatrix()}
+      /> */}
       {camera.current && canvas && (
         <mapControls
           ref={controls}
@@ -80,9 +91,9 @@ function EnvironmentPlane() {
   );
 }
 
-function Debug() {
-  return <axesHelper args={[4]} />;
-}
+// function Debug() {
+//   return <axesHelper args={[4]} />;
+// }
 
 export default function ZoneEditorScene() {
   return (

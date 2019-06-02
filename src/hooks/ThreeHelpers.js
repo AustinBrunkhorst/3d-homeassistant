@@ -1,45 +1,32 @@
-import { useEffect } from "react";
-import { useDebouncedCallback } from "use-debounce";
-import { useThree } from "react-three-fiber";
+import React from "react";
+// import { useDebouncedCallback } from "use-debounce";
 
-function useLocalStorageRef(key, initialValue = null, debounce = 1000) {
-  const valueInStorage = localStorage.getItem(key);
+// function useLocalStorageRef(key, initialValue = null, debounce = 1000) {
+//   const valueInStorage = localStorage.getItem(key);
 
-  const currentValue =
-    valueInStorage === null ? initialValue : JSON.parse(valueInStorage);
+//   const currentValue =
+//     valueInStorage === null ? initialValue : JSON.parse(valueInStorage);
 
-  const [persistValue] = useDebouncedCallback(state => {
-    console.log(`saving ${key}`);
-    localStorage.setItem(key, JSON.stringify(state));
-  }, debounce);
+//   const [persistValue] = useDebouncedCallback(state => {
+//     console.log(`saving ${key}`);
+//     localStorage.setItem(key, JSON.stringify(state));
+//   }, debounce);
 
-  return [currentValue, persistValue];
+//   return [currentValue, persistValue];
+// }
+
+export function usePersistedObject(name) {
+  //const [] = useLocalStorageRef(name, null, 500);
+
+  return [];
+  // return [
+  //   serializedState === null ? defaultFactory() : deserializedObject,
+  //   function saveObject(object) {
+  //     persistState(object.toJSON());
+  //   }
+  // ];
 }
 
-export function usePersistedCamera(name, camera) {
-  const [serializedState, persistState] = useLocalStorageRef(name, null, 500);
-  const { invalidate } = useThree();
-
-  useEffect(() => {
-    if (camera && serializedState) {
-      const { aspect, far, focus, fov, matrix, near, zoom } = serializedState;
-
-      Object.assign(camera, { aspect, far, focus, fov, near, zoom });
-
-      camera.matrix.fromArray(matrix);
-      camera.matrix.decompose(camera.position, camera.quaternion, camera.scale);
-
-      camera.updateProjectionMatrix();
-
-      invalidate();
-    }
-  }, [camera, serializedState]);
-
-  return [
-    camera => {
-      const { object } = camera.toJSON();
-
-      persistState(object);
-    }
-  ];
+export function PersistedObject3D({ name, renderObject, ...props }) {
+  return <renderObject {...props} />;
 }
