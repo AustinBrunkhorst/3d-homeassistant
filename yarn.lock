@@ -3779,6 +3779,11 @@ eslint-plugin-jsx-a11y@6.1.2:
     has "^1.0.3"
     jsx-ast-utils "^2.0.1"
 
+eslint-plugin-react-hooks@^1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-1.6.0.tgz#348efcda8fb426399ac7b8609607c7b4025a6f5f"
+  integrity sha512-lHBVRIaz5ibnIgNG07JNiAuBUeKhEf8l4etNx5vfAEwqQ5tcuK3jV9yjmopPgQDagQb7HwIuQVsE3IVcGrRnag==
+
 eslint-plugin-react@7.12.4:
   version "7.12.4"
   resolved "https://registry.yarnpkg.com/eslint-plugin-react/-/eslint-plugin-react-7.12.4.tgz#b1ecf26479d61aee650da612e425c53a99f48c8c"
@@ -8627,9 +8632,9 @@ react-spring@^8.0.20:
     prop-types "^15.5.8"
 
 react-three-fiber@^2.1.4:
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/react-three-fiber/-/react-three-fiber-2.1.4.tgz#a3c74822b73d3a86fb459cac321a231ad1332094"
-  integrity sha512-UBZCCvuxcpiikzo0EaX28kQoiYRjHOXnux9Sdu0hvoi2QaRhN4PR+W33DD4sc4CyKI8uhf/hJTU2Fzf2uNNKtA==
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/react-three-fiber/-/react-three-fiber-2.2.1.tgz#d48e210053579a5c1e44efa84b4eea24f0d9cc29"
+  integrity sha512-bkUDX8WfgB7KiJPtIhljxhNnGjneaYW0E/mTSWnEj+eUwECWjyHJGAL6n1kg6+FZEUHCu0FQbnXiMRJsVtB/UA==
   dependencies:
     "@babel/runtime" "^7.4.4"
     "@types/three" "^0.103.2"
@@ -9970,7 +9975,17 @@ text-table@0.2.0, text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-three@*, three@^0.104.0:
+three-sky@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/three-sky/-/three-sky-1.1.1.tgz#ff8302008567af8c0b3cb5a6aeaece2cefb43abb"
+  integrity sha512-eCkHJ1A9GuN5C6IQccDUK91l1qd07u23u3qJlblgivi374dx0G0gNcNnuAPBlSUm1jcONHy3jcfjbsiwIg4nOg==
+
+three@*:
+  version "0.105.2"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.105.2.tgz#d135f1549bdcf5a9acd904ba3dbf9198a0268984"
+  integrity sha512-L3Al37k4g3hVbgFFS251UVtIc25chhyN0/RvXzR0C+uIBToV6EKDG+MZzEXm9L2miGUVMK27W46/VkP6WUZXMg==
+
+three@^0.104.0:
   version "0.104.0"
   resolved "https://registry.yarnpkg.com/three/-/three-0.104.0.tgz#9ad1da492153b753a89e0df066631215bd9d9087"
   integrity sha512-q617IMBC5k40U2E9UC4/LtmhzTOOLB1jGMIooUL+QrhZ7abiGCSDrKrpCDt9V8RTl6xw+0FYfA1PYsIPKbQOgg==
