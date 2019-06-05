@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import { AssetMetadata } from "../asset.model";
 
 const modelAssets = [
@@ -379,6 +380,7 @@ const initialState: AssetMetadata[] = modelAssets.sort().map(path => {
   const [basename] = path.split(".");
 
   return {
+    guid: THREE.Math.generateUUID(),
     title: basename
       .replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
       .replace(/([A-Z])/g, match => ` ${match}`)

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { connect } from "react-redux";
 
-import { AssetMetadata } from "../../store/asset.model";
+import { AssetMetadata } from "store/asset.model";
 import { RootContainer } from "./elements";
 import SearchInput from "./SearchInput";
 import AssetList from "./AssetList";
@@ -24,7 +24,7 @@ function AssetSidebar({ assets } = initialState) {
   ]);
 
   return (
-    <RootContainer variant="permanent">
+    <RootContainer>
       <SearchInput onChange={setSearchQuery} value={searchQuery} />
       <AssetList assets={filteredAssets} />
     </RootContainer>

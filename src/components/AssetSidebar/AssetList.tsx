@@ -19,7 +19,7 @@ function AssetList({ assets }) {
   return (
     <Container ref={ref}>
       <VirtualList
-        width={width}
+        width={width || 0}
         height={height || 0}
         itemCount={assets.length}
         itemSize={itemHeight}

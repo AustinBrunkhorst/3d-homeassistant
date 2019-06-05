@@ -27,7 +27,7 @@ export function usePersistedObject(name, object, recursive = true) {
 
       object.copy(serializedObject, recursive);
     }
-  }, [object, serializedState]);
+  }, [object, serializedState, recursive]);
 
   return [
     function saveObject(object) {

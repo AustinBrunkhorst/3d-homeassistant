@@ -1,1 +1,0 @@
-function ModelAsset({ asset: ModelAsset }) {}

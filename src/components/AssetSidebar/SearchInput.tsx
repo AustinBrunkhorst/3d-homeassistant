@@ -1,10 +1,11 @@
 import React from "react";
 import { createStyles, makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
 import InputBase from "@material-ui/core/InputBase";
 import IconButton from "@material-ui/core/IconButton";
 import SearchIcon from "@material-ui/icons/Search";
 import ClearIcon from "@material-ui/icons/Clear";
+
+import { SearchInputContainer } from "./elements";
 
 const useStyles = makeStyles(
   createStyles({
@@ -38,7 +39,7 @@ function SearchInput({ value, onChange }: SearchInputProps) {
   const classes = useStyles();
 
   return (
-    <Paper className={classes.root}>
+    <SearchInputContainer>
       <IconButton
         className={classes.iconButton}
         aria-label="Search"
@@ -52,7 +53,7 @@ function SearchInput({ value, onChange }: SearchInputProps) {
         placeholder="Search assets"
         onChange={e => onChange(e.target.value)}
       />
-    </Paper>
+    </SearchInputContainer>
   );
 }
 

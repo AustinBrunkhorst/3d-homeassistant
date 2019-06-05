@@ -1,5 +1,4 @@
 import React from "react";
-import styled from "styled-components";
 import Box from "@material-ui/core/Box";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
@@ -10,7 +9,8 @@ import {
   DragPreviewImage
 } from "react-dnd";
 
-import { AssetMetadata } from "../../store/asset.model";
+import { AssetItemDragType } from "core/dragDrop/types";
+import { AssetMetadata } from "store/asset.model";
 import { AssetThumbnail } from "./elements";
 
 export interface AssetListItemProps {
@@ -35,12 +35,10 @@ function AssetListItem({
   );
 }
 
-export const AssetListItemDragType = Symbol();
-
 export default DragSource(
-  AssetListItemDragType,
+  AssetItemDragType,
   {
-    beginDrag: () => ({})
+    beginDrag: ({ asset }: AssetListItemProps) => ({ asset })
   },
   (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
     connectDragSource: connect.dragSource(),
