@@ -6,9 +6,11 @@ import {
 } from "react-dnd";
 import throttle from "raf-schd";
 import { __EXPERIMENTAL_DND_HOOKS_THAT_MAY_CHANGE_AND_BREAK_MY_BUILD__ as dnd } from "react-dnd";
-const { useDrop } = dnd;
 
 import { AssetItemDragType } from "./types";
+import { AssetMetadata } from "store/asset.model";
+
+const { useDrop } = dnd;
 
 export interface DragProps {
   connectDropTarget: ConnectDropTarget;
@@ -43,9 +45,14 @@ const collect = (connect: DropTargetConnector) => ({
 });
 
 export function useAssetItemDrop() {
-  const [collectedProps, drop] = useDrop({ accept: AssetItemDragType });
+  const [collectedProps, drop] = useDrop({
+    accept: AssetItemDragType,
+    hover: throttle((item: AssetMetadata, monitor: DropTargetMonitor) => {
+      console.log("hover", item);
+    })
+  });
 
   console.log("collected props", collectedProps);
 
-  return [null];
+  return [drop];
 }

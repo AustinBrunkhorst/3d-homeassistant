@@ -109,10 +109,10 @@ class ZoneEditorSceneBackup extends React.Component<DragProps>
 }
 
 function ZoneEditorScene() {
-  const [dropSource] = useAssetItemDrop();
+  const [drop] = useAssetItemDrop();
 
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div ref={drop} style={{ width: "100%", height: "100%" }}>
       <Canvas>
         <ZoneEditorCamera />
         <ambientLight color="gray" />
