@@ -3,18 +3,15 @@ import { AxesHelper } from "three/src/helpers/AxesHelper";
 import { GridHelper } from "three/src/helpers/GridHelper";
 import { MapControls } from "three/examples/jsm/controls/MapControls";
 import Sky from "three-sky";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { extend, Canvas, useRender } from "react-three-fiber";
-import { DropTargetMonitor } from "react-dnd";
+import { CanvasContext } from "react-three-fiber/types/src/canvas";
+import throttle from "raf-schd";
 
-import {
-  withDropTarget,
-  DragProps,
-  ZoneEditorDropHandler,
-  useAssetItemDrop
-} from "core/dragDrop/assetItem";
+import { useAssetItemDrop } from "core/dragDrop/assetItem";
 import Sun from "./Sun";
 import ZoneEditorCamera from "./ZoneEditorCamera";
+import { AssetMetadata } from "store/asset.model";
 
 extend({ AxesHelper, GridHelper, MapControls, Sky });
 
@@ -33,7 +30,7 @@ const FocusedObject = () => {
   );
 };
 
-function EnvironmentPlane() {
+function EditorEnvironment({ plane }) {
   const [sunProps, setSunProps] = useState({
     distance: 1000,
     turbidity: 10,
@@ -56,7 +53,10 @@ function EnvironmentPlane() {
   return (
     <>
       <Sun {...sunProps} />
-      <mesh rotation={[THREE.Math.degToRad(90), 0, THREE.Math.degToRad(90)]}>
+      <mesh
+        ref={plane}
+        rotation={[THREE.Math.degToRad(90), 0, THREE.Math.degToRad(90)]}
+      >
         <planeGeometry attach="geometry" args={[40, 40]} />
         <meshBasicMaterial
           attach="material"
@@ -73,56 +73,134 @@ function Debug() {
   return <axesHelper args={[4]} position={[-10, 0, -10]} />;
 }
 
-// TODO: move to functional component when react-dnd is hook stable
-class ZoneEditorSceneBackup extends React.Component<DragProps>
-  implements ZoneEditorDropHandler {
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
-    const { connectDropTarget } = this.props;
-
-    return connectDropTarget(
-      <div style={{ width: "100%", height: "100%" }}>
-        <Canvas>
-          <ZoneEditorCamera />
-          <ambientLight color="gray" />
-          <pointLight color="white" intensity={1} position={[0, 0, 10]} />
-          <EnvironmentPlane />
-          <FocusedObject />
-          <Debug />
-        </Canvas>
-      </div>
-    );
-  }
-
-  dropTargetDidHover(monitor: DropTargetMonitor): void {
-    if (!monitor.canDrop()) {
-      return;
-    }
-
-    console.log("hover");
-  }
-
-  dropTargetDidDrop(monitor: DropTargetMonitor): void {}
+interface DragState {
+  asset: AssetMetadata;
+  targetLocation: THREE.Vector3;
 }
 
-function ZoneEditorScene() {
-  const [drop] = useAssetItemDrop();
+const dragPreviewSize = new THREE.Vector3(2, 2, 2);
+
+function DragSourcePreview({ position }) {
+  const offset = position.clone();
+
+  offset.y += dragPreviewSize.y / 2;
 
   return (
-    <div ref={drop} style={{ width: "100%", height: "100%" }}>
-      <Canvas>
+    <mesh position={offset}>
+      <boxBufferGeometry attach="geometry" args={dragPreviewSize.toArray()} />
+      <meshPhongMaterial
+        attach="material"
+        color="green"
+        emissive="green"
+        emissiveIntensity={10}
+      />
+    </mesh>
+  );
+}
+
+export default function ZoneEditorScene() {
+  const [, setCreated] = useState(false);
+  const context = useRef<CanvasContext>();
+  const groundPlane = useRef<THREE.Mesh>();
+  const bounds = useRef<any>();
+  const [dragSource, setDragSource] = useState<DragState>();
+
+  const canDrop = (inputOffset: THREE.Vector2) => {
+    const { current: contextInstance } = context;
+    const { current: groundPlaneInstance } = groundPlane;
+
+    if (!contextInstance || !groundPlaneInstance) {
+      return false;
+    }
+
+    const { raycaster } = contextInstance;
+    const { current: size } = bounds;
+
+    if (!size) {
+      return false;
+    }
+
+    const ndc = new THREE.Vector2();
+
+    ndc.x = ((inputOffset.x - size.left) / size.width) * 2 - 1;
+    ndc.y = -((inputOffset.y - size.top) / size.height) * 2 + 1;
+
+    raycaster.setFromCamera(ndc, contextInstance.camera);
+
+    const intersects = raycaster.intersectObject(groundPlaneInstance);
+
+    return intersects.length > 0;
+  };
+
+  const onHover = throttle(
+    (inputOffset: THREE.Vector2, asset: AssetMetadata) => {
+      const { current: contextInstance } = context;
+      const { current: groundPlaneInstance } = groundPlane;
+
+      if (!contextInstance || !groundPlaneInstance) {
+        return;
+      }
+
+      const { raycaster } = contextInstance;
+      const { current: size } = bounds;
+
+      if (!size) {
+        return;
+      }
+
+      const ndc = new THREE.Vector2();
+
+      ndc.x = ((inputOffset.x - size.left) / size.width) * 2 - 1;
+      ndc.y = -((inputOffset.y - size.top) / size.height) * 2 + 1;
+
+      raycaster.setFromCamera(ndc, contextInstance.camera);
+
+      const intersects = raycaster.intersectObject(groundPlaneInstance);
+
+      if (intersects.length > 0) {
+        setDragSource({ asset, targetLocation: intersects[0].point });
+      } else {
+        setDragSource(undefined);
+      }
+    }
+  );
+
+  const onDrop = (inputOffset: THREE.Vector2, asset: AssetMetadata) => {
+    console.log("drop");
+    setDragSource(undefined);
+  };
+
+  function connectContext(instance: CanvasContext) {
+    context.current = instance;
+
+    setCreated(true);
+  }
+
+  const [drop] = useAssetItemDrop(canDrop, onHover, onDrop);
+
+  const connectContainer = throttle((container: HTMLDivElement) => {
+    if (drop) {
+      drop(container);
+    }
+
+    if (container) {
+      bounds.current = container.getBoundingClientRect();
+    }
+  });
+
+  return (
+    <div ref={connectContainer} style={{ width: "100%", height: "100%" }}>
+      <Canvas onCreated={connectContext}>
         <ZoneEditorCamera />
         <ambientLight color="gray" />
         <pointLight color="white" intensity={1} position={[0, 0, 10]} />
-        <EnvironmentPlane />
+        <EditorEnvironment plane={ref => (groundPlane.current = ref)} />
         <FocusedObject />
         <Debug />
+        {dragSource && (
+          <DragSourcePreview position={dragSource.targetLocation} />
+        )}
       </Canvas>
     </div>
   );
 }
-
-export default withDropTarget(ZoneEditorScene);

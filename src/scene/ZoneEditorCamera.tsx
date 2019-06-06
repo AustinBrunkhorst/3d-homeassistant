@@ -1,43 +1,19 @@
 import React, { useRef, useEffect } from "react";
-import { MapControls } from "three/examples/jsm/controls/MapControls";
-import { useThree, useRender } from "react-three-fiber";
+import { useThree } from "react-three-fiber";
 
-import { usePersistedObject } from "hooks/ThreeHelpers";
+import { usePersistedMapControls } from "hooks/ThreeHelpers";
 
 export default function ZoneEditorCamera() {
   const { size, setDefaultCamera, canvas } = useThree();
   const camera = useRef<THREE.Camera>();
-  const controls = useRef<MapControls>();
 
-  const [saveCameraState] = usePersistedObject("editor.camera", camera.current);
+  const [controls] = usePersistedMapControls("editor.camera");
 
   useEffect(() => {
     if (camera.current) {
       setDefaultCamera(camera.current);
     }
-
-    function onControlsUpdated() {
-      saveCameraState(camera.current);
-    }
-
-    const { current: currentControls } = controls;
-
-    if (currentControls) {
-      currentControls.addEventListener("change", onControlsUpdated);
-    }
-
-    return () => {
-      if (currentControls) {
-        currentControls.removeEventListener("change", onControlsUpdated);
-      }
-    };
-  }, [saveCameraState, setDefaultCamera]);
-
-  useRender(() => {
-    if (controls.current) {
-      controls.current.update();
-    }
-  });
+  }, [setDefaultCamera]);
 
   return (
     <>
@@ -46,11 +22,11 @@ export default function ZoneEditorCamera() {
         aspect={size ? size.width / size.height : 1}
         near={0.01}
         far={20000}
-        fov={45}
+        fov={60}
         position={[10, 10, 5]}
-        onUpdate={(self: THREE.PerspectiveCamera) =>
-          self.updateProjectionMatrix()
-        }
+        onUpdate={(self: THREE.PerspectiveCamera) => {
+          self.updateProjectionMatrix();
+        }}
       />
       {camera.current && canvas && (
         <mapControls

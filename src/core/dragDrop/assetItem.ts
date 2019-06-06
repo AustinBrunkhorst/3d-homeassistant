@@ -1,10 +1,10 @@
+import * as THREE from "three";
+import { useRef } from "react";
 import {
-  DropTarget,
-  DropTargetConnector,
   DropTargetMonitor,
-  ConnectDropTarget
+  DragObjectWithType,
+  ConnectableElement
 } from "react-dnd";
-import throttle from "raf-schd";
 import { __EXPERIMENTAL_DND_HOOKS_THAT_MAY_CHANGE_AND_BREAK_MY_BUILD__ as dnd } from "react-dnd";
 
 import { AssetItemDragType } from "./types";
@@ -12,47 +12,73 @@ import { AssetMetadata } from "store/asset.model";
 
 const { useDrop } = dnd;
 
-export interface DragProps {
-  connectDropTarget: ConnectDropTarget;
+export interface AssetDragState {
+  asset: AssetMetadata;
+
+  // normalized device coordinates of the touch/cursor they item is currently dragged
+  viewportNdc: THREE.Vector3;
 }
 
-export interface ZoneEditorDropHandler {
-  dropTargetDidHover(monitor: DropTargetMonitor): void;
-  dropTargetDidDrop(monitor: DropTargetMonitor): void;
-}
+export type CanDropHandler = (
+  viewportOffset: THREE.Vector2,
+  asset: AssetMetadata
+) => boolean;
 
-export const withDropTarget = (component: React.ComponentType<DragProps>) =>
-  DropTarget(AssetItemDragType, dropTarget, collect)(component);
+export type HoverHandler = (
+  viewportOffset: THREE.Vector2,
+  asset: AssetMetadata
+) => void;
 
-const dropTarget = {
-  hover: throttle(
-    (
-      props: DragProps,
-      monitor: DropTargetMonitor,
-      component: ZoneEditorDropHandler
-    ) => {
-      component.dropTargetDidHover(monitor);
-    }
-  ),
+export type DropHandler = (
+  viewportOffset: THREE.Vector2,
+  asset: AssetMetadata
+) => void;
 
-  drop(props, monitor, component: ZoneEditorDropHandler) {
-    component.dropTargetDidDrop(monitor);
-  }
-};
+type AssetDragItem = AssetMetadata & DragObjectWithType;
 
-const collect = (connect: DropTargetConnector) => ({
-  connectDropTarget: connect.dropTarget()
-});
+export function useAssetItemDrop(
+  canDrop: CanDropHandler,
+  onHover: HoverHandler,
+  onDrop: DropHandler
+) {
+  const container = useRef<HTMLElement>();
 
-export function useAssetItemDrop() {
-  const [collectedProps, drop] = useDrop({
+  const [, connectDropTarget] = useDrop({
     accept: AssetItemDragType,
-    hover: throttle((item: AssetMetadata, monitor: DropTargetMonitor) => {
-      console.log("hover", item);
-    })
+    canDrop: (asset: AssetDragItem, monitor: DropTargetMonitor) => {
+      const input = monitor.getClientOffset();
+
+      if (!container.current || !input || !canDrop) {
+        return false;
+      }
+
+      return canDrop(new THREE.Vector2(input.x, input.y), asset);
+    },
+    hover: (asset: AssetDragItem, monitor: DropTargetMonitor) => {
+      const input = monitor.getClientOffset();
+
+      if (!container.current || !input || !onHover) {
+        return;
+      }
+
+      onHover(new THREE.Vector2(input.x, input.y), asset);
+    },
+    drop: (asset: AssetDragItem, monitor: DropTargetMonitor) => {
+      const input = monitor.getClientOffset();
+
+      if (!container.current || !input || !onHover || !monitor.canDrop()) {
+        return;
+      }
+
+      onDrop(new THREE.Vector2(input.x, input.y), asset);
+    }
   });
 
-  console.log("collected props", collectedProps);
+  return [
+    function connectContainer(instance: ConnectableElement) {
+      connectDropTarget(instance);
 
-  return [drop];
+      container.current = instance as HTMLElement;
+    }
+  ];
 }
