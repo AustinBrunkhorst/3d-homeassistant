@@ -48,5 +48,5 @@ export default function Skybox({
     ]
   );
 
-  return <sky ref={ref} scale={[1000, 1000, 1000]} />;
+  return <sky ref={ref} scale={[450000, 450000, 450000]} />;
 }

@@ -11,52 +11,59 @@ import { useAssetItemDrop } from "core/dragDrop/assetItem";
 import { AssetMetadata } from "store/asset.model";
 import Skybox from "./Skybox";
 import ZoneEditorCamera from "./ZoneEditorCamera";
-import DraggedAssetPreview from "./DraggedAssetPreview";
 import ZoneObjects from "./ZoneObjects";
 
 extend({ AxesHelper, GridHelper, MapControls });
 
 function EditorEnvironment({ plane }) {
   const [sunProps, setSunProps] = useState({
-    distance: 50,
-    turbidity: 10,
+    distance: 400000,
+    turbidity: 5,
     rayleigh: 2,
     mieCoefficient: 0.005,
     mieDirectionalG: 0.8,
-    luminance: 1,
-    elevation: 0.42,
-    azimuth: 0.25
+    luminance: 1.15,
+    elevation: 1,
+    azimuth: 1
   });
 
   const sunPosition = useRef(new THREE.Vector3());
 
   useRender(() => {
+    const normalized = THREE.Math.mapLinear(
+      (Math.cos(Date.now() / 50000) + 1) * 0.5,
+      0,
+      1,
+      0.15,
+      0.35
+    );
+
     setSunProps({
       ...sunProps,
-      azimuth:
-        (Math.cos(Date.now() / 900000) + 1) * 0.5 * THREE.Math.degToRad(270)
+      azimuth: normalized,
+      elevation: normalized
     });
   });
 
   return (
     <>
-      <ambientLight color="white" />
-      <directionalLight position={sunPosition.current} castShadow={true} />
-      <gridHelper args={[10, 20]} />
+      <ambientLight color="white" intensity={0.5} />
+      <directionalLight position={sunPosition.current.clone()} castShadow />
+      <gridHelper
+        args={[10, 50, new THREE.Color("#4b968f"), new THREE.Color("#5eb2aa")]}
+      />
       <mesh
         ref={plane}
-        rotation={[THREE.Math.degToRad(90), 0, THREE.Math.degToRad(90)]}
-        recieveShadow
+        rotation={[-THREE.Math.degToRad(90), 0, THREE.Math.degToRad(90)]}
       >
-        <planeGeometry attach="geometry" args={[40, 40]} />
-        <meshBasicMaterial
-          attach="material"
-          color="#6cdcd1"
-          side={THREE.DoubleSide}
-        />
+        <planeGeometry attach="geometry" args={[10, 10]} />
+        <meshBasicMaterial attach="material" color="#6cdcd1" />
       </mesh>
 
-      <Skybox {...sunProps} updateSunPosition={value => sunPosition.current = value} />
+      <Skybox
+        {...sunProps}
+        updateSunPosition={value => (sunPosition.current = value)}
+      />
     </>
   );
 }
@@ -67,12 +74,12 @@ function Debug() {
 
 interface DragState {
   asset: AssetMetadata;
-  targetLocation: THREE.Vector3;
+  position: THREE.Vector3;
 }
 
 interface DroppedAsset {
-  asset: AssetMetadata;
   id: number;
+  asset: AssetMetadata;
   position: THREE.Vector3;
 }
 
@@ -84,7 +91,9 @@ export default function ZoneEditorScene() {
   const groundPlane = useRef<THREE.Mesh>();
   const bounds = useRef<any>();
   const [dragSource, setDragSource] = useState<DragState>();
-  const [droppedAssets, setDroppedAssets] = useState<DroppedAsset[]>(initialItems);
+  const [droppedAssets, setDroppedAssets] = useState<DroppedAsset[]>(
+    initialItems
+  );
   const nextId = useRef(0);
 
   const canDrop = (inputOffset: THREE.Vector2) => {
@@ -137,10 +146,17 @@ export default function ZoneEditorScene() {
 
       raycaster.setFromCamera(ndc, contextInstance.camera);
 
-      const intersects = raycaster.intersectObject(groundPlaneInstance);
+      const [hitPlane] = raycaster.intersectObject(groundPlaneInstance);
 
-      if (intersects.length > 0) {
-        setDragSource({ asset, targetLocation: intersects[0].point });
+      if (hitPlane) {
+        const snapSize = 0.1;
+        const position = new THREE.Vector3(
+          Math.round(hitPlane.point.x / snapSize) * snapSize,
+          hitPlane.point.y,
+          Math.round(hitPlane.point.z / snapSize) * snapSize
+        );
+
+        setDragSource({ asset, position });
       } else {
         setDragSource(undefined);
       }
@@ -183,11 +199,21 @@ export default function ZoneEditorScene() {
 
     const id = nextId.current++;
 
-    setDroppedAssets(assets => [...assets, {
-      asset,
-      id,
-      position: hitPlane.point
-    }]);
+    const snapSize = 0.1;
+    const position = new THREE.Vector3(
+      Math.round(hitPlane.point.x / snapSize) * snapSize,
+      hitPlane.point.y,
+      Math.round(hitPlane.point.z / snapSize) * snapSize
+    );
+
+    setDroppedAssets(assets => [
+      ...assets,
+      {
+        asset,
+        id,
+        position
+      }
+    ]);
   }
 
   function connectContext(instance: CanvasContext) {
@@ -197,7 +223,6 @@ export default function ZoneEditorScene() {
       instance.gl.shadowMap.enabled = true;
       instance.gl.shadowMap.type = THREE.PCFSoftShadowMap;
     }
-
 
     setCreated(true);
   }
@@ -220,10 +245,7 @@ export default function ZoneEditorScene() {
         <ZoneEditorCamera />
         <EditorEnvironment plane={ref => (groundPlane.current = ref)} />
         <Debug />
-        <ZoneObjects objects={droppedAssets} />
-        {dragSource && (
-          <DraggedAssetPreview position={dragSource.targetLocation} />
-        )}
+        <ZoneObjects objects={droppedAssets} dragSource={dragSource} />
       </Canvas>
     </div>
   );

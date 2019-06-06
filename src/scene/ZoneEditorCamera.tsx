@@ -21,7 +21,7 @@ export default function ZoneEditorCamera() {
         ref={camera}
         aspect={size ? size.width / size.height : 1}
         near={0.01}
-        far={20000}
+        far={2000000}
         fov={60}
         position={[10, 10, 5]}
         onUpdate={(self: THREE.PerspectiveCamera) => {

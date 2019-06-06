@@ -2,12 +2,8 @@ import React from "react";
 import Box from "@material-ui/core/Box";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import {
-  DragSource,
-  DragSourceConnector,
-  DragSourceMonitor,
-  DragPreviewImage
-} from "react-dnd";
+import { DragSource, DragSourceConnector, DragSourceMonitor } from "react-dnd";
+import { getEmptyImage } from "react-dnd-html5-backend";
 
 import { AssetItemDragType } from "core/dragDrop/types";
 import { AssetMetadata } from "store/asset.model";
@@ -22,9 +18,10 @@ function AssetListItem({
   connectDragSource,
   connectDragPreview
 }) {
+  connectDragPreview(getEmptyImage());
+
   return (
     <>
-      <DragPreviewImage connect={connectDragPreview} src={thumbnail} />
       <ListItem key={title} ref={connectDragSource}>
         <Box mr={2}>
           <AssetThumbnail src={thumbnail} />

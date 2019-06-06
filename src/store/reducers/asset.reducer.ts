@@ -376,7 +376,7 @@ const modelAssets = [
   "cactus_tall.gltf"
 ];
 
-const initialState: AssetMetadata[] = modelAssets.sort().filter(path => path.indexOf(".glb") === -1).map(path => {
+const initialState: AssetMetadata[] = modelAssets.sort().map(path => {
   const [basename] = path.split(".");
 
   return {

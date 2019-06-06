@@ -34,7 +34,9 @@ export type DropHandler = (
   asset: AssetMetadata
 ) => void;
 
-type AssetDragItem = AssetMetadata & DragObjectWithType;
+interface AssetDragItem extends DragObjectWithType {
+  asset: AssetMetadata;
+}
 
 export function useAssetItemDrop(
   canDrop: CanDropHandler,
@@ -45,7 +47,7 @@ export function useAssetItemDrop(
 
   const [, connectDropTarget] = useDrop({
     accept: AssetItemDragType,
-    canDrop: (asset: AssetDragItem, monitor: DropTargetMonitor) => {
+    canDrop: ({ asset }: AssetDragItem, monitor: DropTargetMonitor) => {
       const input = monitor.getClientOffset();
 
       if (!container.current || !input || !canDrop) {
@@ -54,7 +56,7 @@ export function useAssetItemDrop(
 
       return canDrop(new THREE.Vector2(input.x, input.y), asset);
     },
-    hover: (asset: AssetDragItem, monitor: DropTargetMonitor) => {
+    hover: ({ asset }: AssetDragItem, monitor: DropTargetMonitor) => {
       const input = monitor.getClientOffset();
 
       if (!container.current || !input || !onHover) {
@@ -63,7 +65,7 @@ export function useAssetItemDrop(
 
       onHover(new THREE.Vector2(input.x, input.y), asset);
     },
-    drop: (asset: AssetDragItem, monitor: DropTargetMonitor) => {
+    drop: ({ asset }: AssetDragItem, monitor: DropTargetMonitor) => {
       const input = monitor.getClientOffset();
 
       if (!container.current || !input || !onHover || !monitor.canDrop()) {
