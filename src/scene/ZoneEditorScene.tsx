@@ -2,37 +2,23 @@ import * as THREE from "three";
 import { AxesHelper } from "three/src/helpers/AxesHelper";
 import { GridHelper } from "three/src/helpers/GridHelper";
 import { MapControls } from "three/examples/jsm/controls/MapControls";
-import Sky from "three-sky";
 import React, { useState, useRef } from "react";
 import { extend, Canvas, useRender } from "react-three-fiber";
 import { CanvasContext } from "react-three-fiber/types/src/canvas";
 import throttle from "raf-schd";
 
 import { useAssetItemDrop } from "core/dragDrop/assetItem";
-import Sun from "./Sun";
-import ZoneEditorCamera from "./ZoneEditorCamera";
 import { AssetMetadata } from "store/asset.model";
+import Skybox from "./Skybox";
+import ZoneEditorCamera from "./ZoneEditorCamera";
+import DraggedAssetPreview from "./DraggedAssetPreview";
+import ZoneObjects from "./ZoneObjects";
 
-extend({ AxesHelper, GridHelper, MapControls, Sky });
-
-const FocusedObject = () => {
-  const [rot, setRot] = useState(0);
-
-  useRender(() => {
-    setRot(Date.now() / 1000);
-  });
-
-  return (
-    <mesh position={[10, 10, 0]} rotation={[rot, 0, rot]}>
-      <dodecahedronBufferGeometry attach="geometry" args={[1, 0]} />
-      <meshPhongMaterial attach="material" color="red" />
-    </mesh>
-  );
-};
+extend({ AxesHelper, GridHelper, MapControls });
 
 function EditorEnvironment({ plane }) {
   const [sunProps, setSunProps] = useState({
-    distance: 1000,
+    distance: 50,
     turbidity: 10,
     rayleigh: 2,
     mieCoefficient: 0.005,
@@ -41,6 +27,8 @@ function EditorEnvironment({ plane }) {
     elevation: 0.42,
     azimuth: 0.25
   });
+
+  const sunPosition = useRef(new THREE.Vector3());
 
   useRender(() => {
     setSunProps({
@@ -52,10 +40,13 @@ function EditorEnvironment({ plane }) {
 
   return (
     <>
-      <Sun {...sunProps} />
+      <ambientLight color="white" />
+      <directionalLight position={sunPosition.current} castShadow={true} />
+      <gridHelper args={[10, 20]} />
       <mesh
         ref={plane}
         rotation={[THREE.Math.degToRad(90), 0, THREE.Math.degToRad(90)]}
+        recieveShadow
       >
         <planeGeometry attach="geometry" args={[40, 40]} />
         <meshBasicMaterial
@@ -64,13 +55,14 @@ function EditorEnvironment({ plane }) {
           side={THREE.DoubleSide}
         />
       </mesh>
-      <gridHelper args={[10, 20]} />
+
+      <Skybox {...sunProps} updateSunPosition={value => sunPosition.current = value} />
     </>
   );
 }
 
 function Debug() {
-  return <axesHelper args={[4]} position={[-10, 0, -10]} />;
+  return <axesHelper args={[4]} position={[-40, 0, -40]} />;
 }
 
 interface DragState {
@@ -78,25 +70,13 @@ interface DragState {
   targetLocation: THREE.Vector3;
 }
 
-const dragPreviewSize = new THREE.Vector3(2, 2, 2);
-
-function DragSourcePreview({ position }) {
-  const offset = position.clone();
-
-  offset.y += dragPreviewSize.y / 2;
-
-  return (
-    <mesh position={offset}>
-      <boxBufferGeometry attach="geometry" args={dragPreviewSize.toArray()} />
-      <meshPhongMaterial
-        attach="material"
-        color="green"
-        emissive="green"
-        emissiveIntensity={10}
-      />
-    </mesh>
-  );
+interface DroppedAsset {
+  asset: AssetMetadata;
+  id: number;
+  position: THREE.Vector3;
 }
+
+const initialItems = [];
 
 export default function ZoneEditorScene() {
   const [, setCreated] = useState(false);
@@ -104,6 +84,8 @@ export default function ZoneEditorScene() {
   const groundPlane = useRef<THREE.Mesh>();
   const bounds = useRef<any>();
   const [dragSource, setDragSource] = useState<DragState>();
+  const [droppedAssets, setDroppedAssets] = useState<DroppedAsset[]>(initialItems);
+  const nextId = useRef(0);
 
   const canDrop = (inputOffset: THREE.Vector2) => {
     const { current: contextInstance } = context;
@@ -165,13 +147,57 @@ export default function ZoneEditorScene() {
     }
   );
 
-  const onDrop = (inputOffset: THREE.Vector2, asset: AssetMetadata) => {
-    console.log("drop");
+  function onDrop(inputOffset: THREE.Vector2, asset: AssetMetadata) {
+    if (onHover.cancel) {
+      onHover.cancel();
+    }
+
     setDragSource(undefined);
-  };
+
+    const { current: contextInstance } = context;
+    const { current: groundPlaneInstance } = groundPlane;
+
+    if (!contextInstance || !groundPlaneInstance) {
+      return;
+    }
+
+    const { raycaster } = contextInstance;
+    const { current: size } = bounds;
+
+    if (!size) {
+      return;
+    }
+
+    const ndc = new THREE.Vector2();
+
+    ndc.x = ((inputOffset.x - size.left) / size.width) * 2 - 1;
+    ndc.y = -((inputOffset.y - size.top) / size.height) * 2 + 1;
+
+    raycaster.setFromCamera(ndc, contextInstance.camera);
+
+    const [hitPlane] = raycaster.intersectObject(groundPlaneInstance);
+
+    if (!hitPlane) {
+      return;
+    }
+
+    const id = nextId.current++;
+
+    setDroppedAssets(assets => [...assets, {
+      asset,
+      id,
+      position: hitPlane.point
+    }]);
+  }
 
   function connectContext(instance: CanvasContext) {
     context.current = instance;
+
+    if (instance.gl) {
+      instance.gl.shadowMap.enabled = true;
+      instance.gl.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
+
 
     setCreated(true);
   }
@@ -192,13 +218,11 @@ export default function ZoneEditorScene() {
     <div ref={connectContainer} style={{ width: "100%", height: "100%" }}>
       <Canvas onCreated={connectContext}>
         <ZoneEditorCamera />
-        <ambientLight color="gray" />
-        <pointLight color="white" intensity={1} position={[0, 0, 10]} />
         <EditorEnvironment plane={ref => (groundPlane.current = ref)} />
-        <FocusedObject />
         <Debug />
+        <ZoneObjects objects={droppedAssets} />
         {dragSource && (
-          <DragSourcePreview position={dragSource.targetLocation} />
+          <DraggedAssetPreview position={dragSource.targetLocation} />
         )}
       </Canvas>
     </div>

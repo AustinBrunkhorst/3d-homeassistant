@@ -1,7 +1,10 @@
 import React from "react";
-import { useUpdate } from "react-three-fiber";
+import { extend, useUpdate } from "react-three-fiber";
+import Sky from "three-sky";
 
-export default function Sun({
+extend({ Sky });
+
+export default function Skybox({
   distance,
   turbidity,
   rayleigh,
@@ -9,7 +12,8 @@ export default function Sun({
   mieDirectionalG,
   luminance,
   elevation,
-  azimuth
+  azimuth,
+  updateSunPosition
 }) {
   const ref = useUpdate(
     ({ material: { uniforms } }) => {
@@ -27,6 +31,10 @@ export default function Sun({
         distance * Math.sin(phi) * Math.sin(theta),
         distance * Math.sin(phi) * Math.cos(theta)
       );
+
+      if (updateSunPosition) {
+        updateSunPosition(uniforms.sunPosition.value);
+      }
     },
     [
       distance,
