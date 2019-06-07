@@ -1,3 +1,9 @@
 {
-  "typescript.tsdk": "node_modules\\typescript\\lib"
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "importSorter.sortConfiguration.customOrderingRules.rules": [
+    {
+      "regex": "^(\\.{1,2}|assets|components|core|lib|pages|scene|store|style|util)/",
+      "orderLevel": 100
+    }
+  ]
 }

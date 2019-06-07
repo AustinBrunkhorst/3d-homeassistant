@@ -1,22 +1,13 @@
-import React, { useState, useMemo } from "react";
-import { connect } from "react-redux";
+import React, { useMemo, useState } from 'react';
+import { useRedux } from 'use-redux';
+import AssetList from './AssetList';
+import { RootContainer } from './elements';
+import SearchInput from './SearchInput';
 
-import { AssetMetadata } from "store/asset.model";
-import { RootContainer } from "./elements";
-import SearchInput from "./SearchInput";
-import AssetList from "./AssetList";
+import { AssetMetadata } from 'store/asset.models';
 
-function mapDispatchToProps() {
-  return {};
-}
-
-function mapStateToProps(state) {
-  return { ...state };
-}
-
-const initialState = { assets: [] };
-
-function AssetSidebar({ assets } = initialState) {
+function AssetSidebar() {
+  const [{ assets }] = useRedux();
   const [searchQuery, setSearchQuery] = useState("");
   const filteredAssets = useMemo(() => filterAssets(searchQuery, assets), [
     assets,
@@ -43,7 +34,4 @@ function filterAssets(query: string, assets: AssetMetadata[]): AssetMetadata[] {
   );
 }
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(AssetSidebar);
+export default AssetSidebar;

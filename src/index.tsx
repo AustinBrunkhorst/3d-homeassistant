@@ -1,16 +1,16 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import { Provider } from "react-redux";
-import { createMuiTheme } from "@material-ui/core/styles";
-import { ThemeProvider } from "@material-ui/styles";
-import { DragDropContextProvider } from "react-dnd";
-import HTML5Backend from "react-dnd-html5-backend";
+import { createMuiTheme } from '@material-ui/core/styles';
+import { ThemeProvider } from '@material-ui/styles';
+import React from 'react';
+import { DragDropContextProvider } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
+import ReactDOM from 'react-dom';
+import { ReduxProvider } from 'use-redux';
 
-import { isProd } from "./environment";
-import { register as registerServiceWorker } from "./serviceWorker";
-import GlobalStyle from "./GlobalStyle";
-import App from "./App";
-import { configureStore } from "./store";
+import App from './App';
+import { isProd } from './environment';
+import GlobalStyle from './GlobalStyle';
+import { register as registerServiceWorker } from './serviceWorker';
+import { configureStore } from './store';
 
 const theme = createMuiTheme({
   palette: {
@@ -18,15 +18,17 @@ const theme = createMuiTheme({
   }
 });
 
+const store = configureStore();
+
 function render(Component) {
   ReactDOM.render(
     <ThemeProvider theme={theme}>
-      <Provider store={configureStore()}>
+      <ReduxProvider store={store}>
         <DragDropContextProvider backend={HTML5Backend}>
           <GlobalStyle />
           <Component />
         </DragDropContextProvider>
-      </Provider>
+      </ReduxProvider>
     </ThemeProvider>,
     document.getElementById("root")
   );

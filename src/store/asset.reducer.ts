@@ -1,5 +1,7 @@
-import * as THREE from "three";
-import { AssetMetadata } from "../asset.model";
+import * as THREE from 'three';
+import { createReducer } from 'typesafe-actions';
+
+import { AssetMetadata } from './asset.models';
 
 const modelAssets = [
   "campfire_large.gltf",
@@ -391,6 +393,6 @@ const initialState: AssetMetadata[] = modelAssets.sort().map(path => {
   };
 });
 
-export function reducer(state = initialState, action) {
-  return state;
-}
+const reducer = createReducer(initialState);
+
+export default reducer;

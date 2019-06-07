@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useMemo } from 'react';
 
-import AssetModel from "./AssetModel";
+import AssetModel from './AssetModel';
 
-export default function ZoneObjects({ objects, dragSource }) {
-  return (
-    <>
-      {objects.map(({ asset, id, position }) => (
-        <AssetModel key={id} asset={asset} position={position} />
-      ))}
-      {dragSource && (
-        <AssetModel asset={dragSource.asset} position={dragSource.position} />
-      )}
-    </>
-  );
+export interface ZoneObjectsProps {
+  objects: any[];
+  dragSource: any;
+}
+
+export default function ZoneObjects({ objects }) {
+  const models = useMemo(() => {
+    return objects.map(({ asset, id, position }) => (
+      <AssetModel key={id} asset={asset} position={position} />
+    ));
+  }, [objects]);
+
+  return <>{models}</>;
 }

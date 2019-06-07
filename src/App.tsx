@@ -1,6 +1,6 @@
-import React from "react";
+import React from 'react';
 
-import { ZoneEditorPage } from "./pages/ZoneEditor";
+import ZoneEditorPage from 'pages/ZoneEditor';
 
 function App() {
   return <ZoneEditorPage />;

@@ -8349,6 +8349,14 @@ react-dnd-html5-backend@^7.4.4:
   dependencies:
     dnd-core "^7.4.4"
 
+react-dnd-touch-backend@^0.8.3:
+  version "0.8.3"
+  resolved "https://registry.yarnpkg.com/react-dnd-touch-backend/-/react-dnd-touch-backend-0.8.3.tgz#85d961ec8578dc9efa5b78000ea904d37e01e60f"
+  integrity sha512-LLJlpeJftRreP9ixm3yfd1JEXf+6BeKo5dkfJFHvNSOEOu+FDSwNl5l8uAG0FeD4z2ZVi7RDQ/jUxdjkBV3zBg==
+  dependencies:
+    dnd-core "^7.4.4"
+    invariant "^2.2.4"
+
 react-dnd@^7.4.5:
   version "7.4.5"
   resolved "https://registry.yarnpkg.com/react-dnd/-/react-dnd-7.4.5.tgz#cb4a2c97cd81f514d892c6cc2f020908ca7382a5"
@@ -10168,6 +10176,16 @@ use-debounce@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/use-debounce/-/use-debounce-2.0.2.tgz#dd73c523d43460bf017c1bd054bcae66333747e3"
   integrity sha512-OznHFKN6WQV6kRVaI4M3mAxEVZsf8vNJyz1fFaJT/iu5vFAICezTKeFt9YJ4w9InHMzOdpAva32+giRIVkEqug==
+
+use-interval@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/use-interval/-/use-interval-1.1.0.tgz#fffb7e10141b8fc36cd5f3055958b960c464092d"
+  integrity sha512-x6U0YaN5IknebySwYnaUy6UCEeG7AfmHkoccGxvI/3WM/8Jo25Pqr+6wr2YL4soMy8i6BSlVE+oVcVTScFBzjA==
+
+use-redux@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/use-redux/-/use-redux-2.2.0.tgz#4f4a4b27972d65f11fdb64948f50d56abc67d101"
+  integrity sha512-deAsof8cy5Jw8JwhgcW8NS6Dc3i8nv70hPeNNVKmBIXZ9hQAaLONHEbirU4rByekm2iyrM9zcXIxtnVDzZImxA==
 
 use@^3.1.0:
   version "3.1.1"

@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
-import { useDebouncedCallback } from "use-debounce";
-import { MapControls } from "three/examples/jsm/controls/MapControls";
-import { useRender } from "react-three-fiber";
+import { useEffect, useState } from 'react';
+import { MapControls } from 'three/examples/jsm/controls/MapControls';
+import { useDebouncedCallback } from 'use-debounce';
 
 function useLocalStorageRef(key: string, initialValue = null, debounce = 1000) {
   const valueInStorage = localStorage.getItem(key);
@@ -40,6 +39,15 @@ export function usePersistedMapControls(name: string) {
       if (serializedState != null) {
         const { target, position, zoom } = serializedState;
 
+        if (!target || !position || isNaN(zoom)) {
+          return console.error(
+            `${name} serialization malformed`,
+            serializedState
+          );
+        }
+
+        controls.saveState();
+
         controls.target0.copy(target);
         controls.position0.copy(position);
         controls.zoom0 = zoom;
@@ -55,13 +63,7 @@ export function usePersistedMapControls(name: string) {
         controls.removeEventListener("change", saveControlsState);
       }
     };
-  }, [controls, serializedState, persistState]);
-
-  useRender(() => {
-    if (controls) {
-      controls.update();
-    }
-  });
+  }, [name, controls, serializedState, persistState]);
 
   return [setControls];
 }

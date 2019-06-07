@@ -1,9 +1,12 @@
-import React, { useRef, useEffect } from "react";
-import { useThree } from "react-three-fiber";
+import { usePersistedMapControls } from 'core/hooks/ThreeHelpers';
+import React, { useEffect, useRef } from 'react';
+import { useThree } from 'react-three-fiber';
 
-import { usePersistedMapControls } from "hooks/ThreeHelpers";
+export interface ZoneEditorCameraProps {
+  connect?: (instance: THREE.Camera) => void;
+}
 
-export default function ZoneEditorCamera() {
+export default function ZoneEditorCamera({ connect }: ZoneEditorCameraProps) {
   const { size, setDefaultCamera, canvas } = useThree();
   const camera = useRef<THREE.Camera>();
 
@@ -15,10 +18,18 @@ export default function ZoneEditorCamera() {
     }
   }, [setDefaultCamera]);
 
+  function connectCamera(instance) {
+    camera.current = instance;
+
+    if (connect) {
+      connect(instance);
+    }
+  }
+
   return (
     <>
       <perspectiveCamera
-        ref={camera}
+        ref={connectCamera}
         aspect={size ? size.width / size.height : 1}
         near={0.01}
         far={2000000}

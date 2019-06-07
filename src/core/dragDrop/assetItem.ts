@@ -1,14 +1,13 @@
-import * as THREE from "three";
-import { useRef } from "react";
+import throttle from 'raf-schd';
+import { useMemo, useRef } from 'react';
 import {
-  DropTargetMonitor,
-  DragObjectWithType,
-  ConnectableElement
-} from "react-dnd";
-import { __EXPERIMENTAL_DND_HOOKS_THAT_MAY_CHANGE_AND_BREAK_MY_BUILD__ as dnd } from "react-dnd";
+    __EXPERIMENTAL_DND_HOOKS_THAT_MAY_CHANGE_AND_BREAK_MY_BUILD__ as dnd, ConnectableElement,
+    DragObjectWithType, DropTargetMonitor
+} from 'react-dnd';
+import * as THREE from 'three';
 
-import { AssetItemDragType } from "./types";
-import { AssetMetadata } from "store/asset.model";
+import { AssetMetadata } from 'store/asset.models';
+import { AssetItemDragType } from './types';
 
 const { useDrop } = dnd;
 
@@ -44,6 +43,19 @@ export function useAssetItemDrop(
   onDrop: DropHandler
 ) {
   const container = useRef<HTMLElement>();
+  const hover = useMemo(
+    () =>
+      throttle(({ asset }: AssetDragItem, monitor: DropTargetMonitor) => {
+        const input = monitor.getClientOffset();
+
+        if (!container.current || !input || !onHover) {
+          return;
+        }
+
+        onHover(new THREE.Vector2(input.x, input.y), asset);
+      }),
+    []
+  );
 
   const [, connectDropTarget] = useDrop({
     accept: AssetItemDragType,
@@ -56,16 +68,12 @@ export function useAssetItemDrop(
 
       return canDrop(new THREE.Vector2(input.x, input.y), asset);
     },
-    hover: ({ asset }: AssetDragItem, monitor: DropTargetMonitor) => {
-      const input = monitor.getClientOffset();
-
-      if (!container.current || !input || !onHover) {
-        return;
+    hover,
+    drop: ({ asset }: AssetDragItem, monitor: DropTargetMonitor) => {
+      if (hover.cancel) {
+        hover.cancel();
       }
 
-      onHover(new THREE.Vector2(input.x, input.y), asset);
-    },
-    drop: ({ asset }: AssetDragItem, monitor: DropTargetMonitor) => {
       const input = monitor.getClientOffset();
 
       if (!container.current || !input || !onHover || !monitor.canDrop()) {

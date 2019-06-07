@@ -1,16 +1,16 @@
-import React from "react";
-import styled from "styled-components";
-import Box from "@material-ui/core/Box";
+import Box from '@material-ui/core/Box';
+import React from 'react';
+import styled from 'styled-components';
 
-import AssetSidebar from "../components/AssetSidebar";
-import ZoneEditorScene from "../scene/ZoneEditorScene";
+import AssetSidebar from 'components/AssetSidebar';
+import ZoneEditorScene from 'scene/ZoneEditorScene';
 
 const PageContainer = styled(Box)`
   height: 100%;
   overflow: hidden;
 `;
 
-export function ZoneEditorPage() {
+function ZoneEditorPage() {
   return (
     <PageContainer display="flex" flexDirection="row">
       <AssetSidebar />
@@ -20,3 +20,5 @@ export function ZoneEditorPage() {
     </PageContainer>
   );
 }
+
+export default ZoneEditorPage;

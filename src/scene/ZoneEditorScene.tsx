@@ -1,76 +1,21 @@
-import * as THREE from "three";
-import { AxesHelper } from "three/src/helpers/AxesHelper";
-import { GridHelper } from "three/src/helpers/GridHelper";
-import { MapControls } from "three/examples/jsm/controls/MapControls";
-import React, { useState, useRef } from "react";
-import { extend, Canvas, useRender } from "react-three-fiber";
-import { CanvasContext } from "react-three-fiber/types/src/canvas";
-import throttle from "raf-schd";
+import throttle from 'raf-schd';
+import React, { useRef, useState } from 'react';
+import { Canvas, extend, useRender } from 'react-three-fiber';
+import { CanvasContext } from 'react-three-fiber/types/src/canvas';
+import * as THREE from 'three';
+import { MapControls } from 'three/examples/jsm/controls/MapControls';
+import { AxesHelper } from 'three/src/helpers/AxesHelper';
+import { GridHelper } from 'three/src/helpers/GridHelper';
 
-import { useAssetItemDrop } from "core/dragDrop/assetItem";
-import { AssetMetadata } from "store/asset.model";
-import Skybox from "./Skybox";
-import ZoneEditorCamera from "./ZoneEditorCamera";
-import ZoneObjects from "./ZoneObjects";
+import { useAssetItemDrop } from 'core/dragDrop/assetItem';
+import { AssetMetadata } from 'store/asset.models';
+import AssetModel from './AssetModel';
+import ThreeDebugger from './ThreeDebugger';
+import ZoneEditorCamera from './ZoneEditorCamera';
+import EditorEnvironment from './ZoneEditorEnvironment';
+import ZoneObjects from './ZoneObjects';
 
 extend({ AxesHelper, GridHelper, MapControls });
-
-function EditorEnvironment({ plane }) {
-  const [sunProps, setSunProps] = useState({
-    distance: 400000,
-    turbidity: 5,
-    rayleigh: 2,
-    mieCoefficient: 0.005,
-    mieDirectionalG: 0.8,
-    luminance: 1.15,
-    elevation: 1,
-    azimuth: 1
-  });
-
-  const sunPosition = useRef(new THREE.Vector3());
-
-  useRender(() => {
-    const normalized = THREE.Math.mapLinear(
-      (Math.cos(Date.now() / 50000) + 1) * 0.5,
-      0,
-      1,
-      0.15,
-      0.35
-    );
-
-    setSunProps({
-      ...sunProps,
-      azimuth: normalized,
-      elevation: normalized
-    });
-  });
-
-  return (
-    <>
-      <ambientLight color="white" intensity={0.5} />
-      <directionalLight position={sunPosition.current.clone()} castShadow />
-      <gridHelper
-        args={[10, 50, new THREE.Color("#4b968f"), new THREE.Color("#5eb2aa")]}
-      />
-      <mesh
-        ref={plane}
-        rotation={[-THREE.Math.degToRad(90), 0, THREE.Math.degToRad(90)]}
-      >
-        <planeGeometry attach="geometry" args={[10, 10]} />
-        <meshBasicMaterial attach="material" color="#6cdcd1" />
-      </mesh>
-
-      <Skybox
-        {...sunProps}
-        updateSunPosition={value => (sunPosition.current = value)}
-      />
-    </>
-  );
-}
-
-function Debug() {
-  return <axesHelper args={[4]} position={[-40, 0, -40]} />;
-}
 
 interface DragState {
   asset: AssetMetadata;
@@ -83,17 +28,13 @@ interface DroppedAsset {
   position: THREE.Vector3;
 }
 
-const initialItems = [];
-
 export default function ZoneEditorScene() {
   const [, setCreated] = useState(false);
   const context = useRef<CanvasContext>();
   const groundPlane = useRef<THREE.Mesh>();
   const bounds = useRef<any>();
   const [dragSource, setDragSource] = useState<DragState>();
-  const [droppedAssets, setDroppedAssets] = useState<DroppedAsset[]>(
-    initialItems
-  );
+  const [droppedAssets, setDroppedAssets] = useState<DroppedAsset[]>([]);
   const nextId = useRef(0);
 
   const canDrop = (inputOffset: THREE.Vector2) => {
@@ -123,51 +64,45 @@ export default function ZoneEditorScene() {
     return intersects.length > 0;
   };
 
-  const onHover = throttle(
-    (inputOffset: THREE.Vector2, asset: AssetMetadata) => {
-      const { current: contextInstance } = context;
-      const { current: groundPlaneInstance } = groundPlane;
+  function onHover(inputOffset: THREE.Vector2, asset: AssetMetadata) {
+    const { current: contextInstance } = context;
+    const { current: groundPlaneInstance } = groundPlane;
 
-      if (!contextInstance || !groundPlaneInstance) {
-        return;
-      }
-
-      const { raycaster } = contextInstance;
-      const { current: size } = bounds;
-
-      if (!size) {
-        return;
-      }
-
-      const ndc = new THREE.Vector2();
-
-      ndc.x = ((inputOffset.x - size.left) / size.width) * 2 - 1;
-      ndc.y = -((inputOffset.y - size.top) / size.height) * 2 + 1;
-
-      raycaster.setFromCamera(ndc, contextInstance.camera);
-
-      const [hitPlane] = raycaster.intersectObject(groundPlaneInstance);
-
-      if (hitPlane) {
-        const snapSize = 0.1;
-        const position = new THREE.Vector3(
-          Math.round(hitPlane.point.x / snapSize) * snapSize,
-          hitPlane.point.y,
-          Math.round(hitPlane.point.z / snapSize) * snapSize
-        );
-
-        setDragSource({ asset, position });
-      } else {
-        setDragSource(undefined);
-      }
+    if (!contextInstance || !groundPlaneInstance) {
+      return;
     }
-  );
+
+    const { raycaster } = contextInstance;
+    const { current: size } = bounds;
+
+    if (!size) {
+      return;
+    }
+
+    const ndc = new THREE.Vector2();
+
+    ndc.x = ((inputOffset.x - size.left) / size.width) * 2 - 1;
+    ndc.y = -((inputOffset.y - size.top) / size.height) * 2 + 1;
+
+    raycaster.setFromCamera(ndc, contextInstance.camera);
+
+    const [hitPlane] = raycaster.intersectObject(groundPlaneInstance);
+
+    if (hitPlane) {
+      const snapSize = 0.1;
+      const position = new THREE.Vector3(
+        Math.round(hitPlane.point.x / snapSize) * snapSize,
+        hitPlane.point.y,
+        Math.round(hitPlane.point.z / snapSize) * snapSize
+      );
+
+      setDragSource({ asset, position });
+    } else {
+      setDragSource(undefined);
+    }
+  }
 
   function onDrop(inputOffset: THREE.Vector2, asset: AssetMetadata) {
-    if (onHover.cancel) {
-      onHover.cancel();
-    }
-
     setDragSource(undefined);
 
     const { current: contextInstance } = context;
@@ -240,13 +175,73 @@ export default function ZoneEditorScene() {
   });
 
   return (
-    <div ref={connectContainer} style={{ width: "100%", height: "100%" }}>
+    <div
+      ref={connectContainer}
+      style={{ width: "100%", height: "100%", position: "relative" }}
+    >
       <Canvas onCreated={connectContext}>
-        <ZoneEditorCamera />
-        <EditorEnvironment plane={ref => (groundPlane.current = ref)} />
-        <Debug />
-        <ZoneObjects objects={droppedAssets} dragSource={dragSource} />
+        <MainScene
+          groundPlane={groundPlane}
+          droppedAssets={droppedAssets}
+          dragSource={dragSource}
+        />
       </Canvas>
+      <ThreeDebugger context={context} />
     </div>
   );
 }
+
+const grid = {
+  size: 10,
+  divisions: 10,
+  color: new THREE.Color("#5eb2aa"),
+  axesColor: new THREE.Color("white")
+};
+
+function MainScene({ groundPlane, droppedAssets, dragSource }) {
+  const scene = useRef();
+  const camera = useRef<THREE.Camera>();
+
+  useRender(({ gl }) => {
+    gl.autoClear = true;
+
+    if (scene.current && camera.current) {
+      gl.render(scene.current, camera.current);
+    }
+  }, true);
+
+  return (
+    <scene ref={scene}>
+      <ZoneEditorCamera connect={self => (camera.current = self)} />
+      <EditorEnvironment plane={self => (groundPlane.current = self)} />
+      <ZoneObjects objects={droppedAssets} />
+      {dragSource && (
+        <>
+          <AssetModel asset={dragSource.asset} position={dragSource.position} />
+          <gridHelper
+            args={[grid.size, grid.divisions, grid.axesColor, grid.color]}
+          />
+        </>
+      )}
+    </scene>
+  );
+}
+
+// function OrientationGizmo({}) {
+//   const scene = useRef();
+//   const camera = useRef<THREE.Camera>();
+
+//   useRender(({ gl }) => {
+//     gl.autoClear = true;
+
+//     if (scene.current && camera.current) {
+//       gl.render(scene.current, camera.current);
+//     }
+//   }, true);
+
+//   return (
+//     <scene ref={scene}>
+//       <axesHelper args={[4]} position={[-40, 0, -40]} />
+//     </scene>
+//   );
+// }
