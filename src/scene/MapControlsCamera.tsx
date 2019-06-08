@@ -1,36 +1,29 @@
-import React, { useEffect, useRef } from 'react';
-import { useThree } from 'react-three-fiber';
+import React, { useEffect, useState } from 'react';
+import { useResource, useThree } from 'react-three-fiber';
+import { MapControls } from 'three/examples/jsm/controls/MapControls';
 
-import { usePersistedMapControls } from 'core/hooks/ThreeHelpers';
+import { useLocalStorageRef } from 'core/hooks/LocalStorage';
 
 export interface MapControlsCameraProps {
-  connect?: (instance: THREE.Camera) => void;
+  name: string;
 }
 
-export default function MapControlsCamera({ connect }: MapControlsCameraProps) {
+export default function MapControlsCamera({ name }: MapControlsCameraProps) {
   const { size, setDefaultCamera, canvas } = useThree();
-  const camera = useRef<THREE.Camera>();
 
-  const [controls] = usePersistedMapControls("editor.camera");
+  const [ref, camera] = useResource();
+  const [controls] = usePersistedMapControls(name);
 
   useEffect(() => {
-    if (camera.current) {
-      setDefaultCamera(camera.current);
+    if (camera) {
+      setDefaultCamera(camera);
     }
-  }, [setDefaultCamera]);
-
-  function connectCamera(instance) {
-    camera.current = instance;
-
-    if (connect) {
-      connect(instance);
-    }
-  }
+  }, [camera, setDefaultCamera]);
 
   return (
     <>
       <perspectiveCamera
-        ref={connectCamera}
+        ref={ref}
         aspect={size ? size.width / size.height : 1}
         near={0.01}
         far={2000000}
@@ -40,10 +33,10 @@ export default function MapControlsCamera({ connect }: MapControlsCameraProps) {
           self.updateProjectionMatrix();
         }}
       />
-      {camera.current && canvas && (
+      {camera && canvas && (
         <mapControls
           ref={controls}
-          args={[camera.current, canvas]}
+          args={[camera, canvas]}
           enableDamping={false}
           screenSpacePanning={false}
           maxPolarAngle={Math.PI / 2}
@@ -54,3 +47,56 @@ export default function MapControlsCamera({ connect }: MapControlsCameraProps) {
     </>
   );
 }
+
+function usePersistedMapControls(name: string) {
+  const [controls, setControls] = useState<MapControls>();
+  const [serializedState, persistState] = useLocalStorageRef(name, null, 200);
+
+  useEffect(() => {
+    function saveControlsState() {
+      if (!controls) {
+        return;
+      }
+
+      controls.saveState();
+
+      persistState({
+        target: controls.target0,
+        position: controls.position0,
+        zoom: controls.zoom0
+      });
+    }
+
+    if (controls) {
+      if (serializedState != null) {
+        const { target, position, zoom } = serializedState;
+
+        if (!target || !position || isNaN(zoom)) {
+          return console.error(
+            `${name} serialization malformed`,
+            serializedState
+          );
+        }
+
+        controls.saveState();
+
+        controls.target0.copy(target);
+        controls.position0.copy(position);
+        controls.zoom0 = zoom;
+
+        controls.reset();
+      }
+
+      controls.addEventListener("change", saveControlsState);
+    }
+
+    return () => {
+      if (controls) {
+        controls.removeEventListener("change", saveControlsState);
+      }
+    };
+  }, [name, controls, serializedState, persistState]);
+
+  return [setControls];
+}
+

@@ -1,7 +1,7 @@
 import { Box } from '@material-ui/core';
 import React, { useRef, useState } from 'react';
-import { CanvasContext } from 'react-three-fiber/types/src/canvas';
 import styled from 'styled-components';
+import { WebGLRenderer } from 'three';
 import useInterval from 'use-interval';
 
 const Container = styled(Box).attrs({
@@ -60,19 +60,15 @@ function WebGLStats({ fps, info }) {
 }
 
 export interface ThreeDebuggerProps {
-  context: React.MutableRefObject<CanvasContext | undefined>;
+  gl: WebGLRenderer;
 }
 
-function ThreeDebugger({ context }: ThreeDebuggerProps) {
+export default function ThreeDebugger({ gl }: ThreeDebuggerProps) {
   const [fps, setFps] = useState(0);
-  const lastFrames = useRef(context.current ? context.current.frames : 0);
+  const lastFrames = useRef(gl.info.render.frame);
 
   useInterval(() => {
-    if (!context.current || !context.current.gl) {
-      return;
-    }
-
-    const { frame } = context.current.gl.info.render;
+    const { frame } = gl.info.render;
 
     const framesElapsed = frame - lastFrames.current;
 
@@ -81,15 +77,9 @@ function ThreeDebugger({ context }: ThreeDebuggerProps) {
     setFps(framesElapsed);
   }, 1000);
 
-  if (!context.current || !context.current.gl) {
-    return null;
-  }
-
   return (
     <Container>
-      <WebGLStats fps={fps} info={context.current.gl.info} />
+      <WebGLStats fps={fps} info={gl.info} />
     </Container>
   );
 }
-
-export default React.memo(ThreeDebugger);

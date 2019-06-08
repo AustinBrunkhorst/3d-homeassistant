@@ -1,17 +1,18 @@
 import throttle from 'raf-schd';
 import React, { useMemo, useReducer, useRef, useState } from 'react';
-import { Canvas, extend } from 'react-three-fiber';
+import { Canvas, extend, useResource, useThree } from 'react-three-fiber';
 import { CanvasContext } from 'react-three-fiber/types/src/canvas';
-import * as THREE from 'three';
-import { TransformControls } from 'three/examples/js/controls/TransformControls';
+import { PCFSoftShadowMap, Vector2, Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { AxesHelper } from 'three/src/helpers/AxesHelper';
 import { GridHelper } from 'three/src/helpers/GridHelper';
 
 import { useAssetItemDrop } from 'core/dragDrop/assetItem';
-import { AssetMetadata, DroppedAsset } from 'store/asset.models';
+import TransformControls from 'lib/three/TransformControls';
+import { AssetMetadata } from 'store/asset.models';
 import * as actions from 'store/zoneEditor.actions';
 import reducer, { initialState } from 'store/zoneEditor.reducer';
+import { snap } from 'util/Vector';
 import AssetModel from './AssetModel';
 import DebugStats from './DebugStats';
 import EditorEnvironment from './EditorEnvironment';
@@ -21,76 +22,53 @@ extend({ AxesHelper, GridHelper, MapControls, TransformControls });
 
 interface DragState {
   asset: AssetMetadata;
-  position: THREE.Vector3;
+  position: Vector3;
 }
 
 export default function ZoneEditorScene() {
-  const [, setCreated] = useState(false);
-  const context = useRef<CanvasContext>();
-  const groundPlane = useRef<THREE.Mesh>();
+  const { camera, raycaster, gl } = useThree();
   const bounds = useRef<any>();
+  const [connectGroundPlane, groundPlane] = useResource();
   const [dragSource, setDragSource] = useState<DragState>();
   const nextId = useRef(0);
+  const gridSnapSize = 0.1;
 
   const [{ droppedAssets }, dispatch] = useReducer(reducer, initialState);
 
-  const canDrop = (inputOffset: THREE.Vector2) => {
-    const { current: contextInstance } = context;
-    const { current: groundPlaneInstance } = groundPlane;
-
-    if (!contextInstance || !groundPlaneInstance) {
-      return false;
+  function raycastEditorPlane(screen: Vector2) {
+    if (!groundPlane || !bounds.current) {
+      return null;
     }
 
-    const { raycaster } = contextInstance;
-    const { current: size } = bounds;
+    const { left, top, width, height } = bounds.current;
+    const { x, y } = screen;
 
-    if (!size) {
-      return false;
-    }
+    const ndc = new Vector2();
 
-    const ndc = new THREE.Vector2();
+    ndc.x = ((x - left) / width) * 2 - 1;
+    ndc.y = -((y - top) / height) * 2 + 1;
 
-    ndc.x = ((inputOffset.x - size.left) / size.width) * 2 - 1;
-    ndc.y = -((inputOffset.y - size.top) / size.height) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
 
-    raycaster.setFromCamera(ndc, contextInstance.camera);
+    const [hit] = raycaster.intersectObject(groundPlane);
 
-    const intersects = raycaster.intersectObject(groundPlaneInstance);
+    return hit ? hit.point : null;
+  }
 
-    return intersects.length > 0;
-  };
+  const canDrop = (screen: Vector2) => raycastEditorPlane(screen) !== null;
 
-  function onHover(inputOffset: THREE.Vector2, asset: AssetMetadata) {
-    const { current: contextInstance } = context;
-    const { current: groundPlaneInstance } = groundPlane;
+  function onHover(screen: Vector2, asset: AssetMetadata) {
+    const planeWorldPosition = raycastEditorPlane(screen);
 
-    if (!contextInstance || !groundPlaneInstance) {
-      return;
-    }
+    if (planeWorldPosition) {
+      const { x, y, z } = planeWorldPosition;
 
-    const { raycaster } = contextInstance;
-    const { current: size } = bounds;
-
-    if (!size) {
-      return;
-    }
-
-    const ndc = new THREE.Vector2();
-
-    ndc.x = ((inputOffset.x - size.left) / size.width) * 2 - 1;
-    ndc.y = -((inputOffset.y - size.top) / size.height) * 2 + 1;
-
-    raycaster.setFromCamera(ndc, contextInstance.camera);
-
-    const [hitPlane] = raycaster.intersectObject(groundPlaneInstance);
-
-    if (hitPlane) {
       const snapSize = 0.1;
-      const position = new THREE.Vector3(
-        Math.round(hitPlane.point.x / snapSize) * snapSize,
-        hitPlane.point.y,
-        Math.round(hitPlane.point.z / snapSize) * snapSize
+
+      const position = new Vector3(
+        Math.round(x / snapSize) * snapSize,
+        y,
+        Math.round(z / snapSize) * snapSize
       );
 
       setDragSource({ asset, position });
@@ -99,58 +77,26 @@ export default function ZoneEditorScene() {
     }
   }
 
-  function onDrop(inputOffset: THREE.Vector2, asset: AssetMetadata) {
-    setDragSource(undefined);
+  function onDrop(screen: Vector2, asset: AssetMetadata) {
+    const planeWorldPosition = raycastEditorPlane(screen);
 
-    const { current: contextInstance } = context;
-    const { current: groundPlaneInstance } = groundPlane;
+    if (planeWorldPosition) {
+      const id = nextId.current++;
 
-    if (!contextInstance || !groundPlaneInstance) {
-      return;
+      const position = snap(planeWorldPosition, gridSnapSize);
+
+      dispatch(actions.dropAsset({
+        id, asset, position
+      }));
     }
-
-    const { raycaster } = contextInstance;
-    const { current: size } = bounds;
-
-    if (!size) {
-      return;
-    }
-
-    const ndc = new THREE.Vector2();
-
-    ndc.x = ((inputOffset.x - size.left) / size.width) * 2 - 1;
-    ndc.y = -((inputOffset.y - size.top) / size.height) * 2 + 1;
-
-    raycaster.setFromCamera(ndc, contextInstance.camera);
-
-    const [hitPlane] = raycaster.intersectObject(groundPlaneInstance);
-
-    if (!hitPlane) {
-      return;
-    }
-
-    const id = nextId.current++;
-
-    const snapSize = 0.1;
-    const position = new THREE.Vector3(
-      Math.round(hitPlane.point.x / snapSize) * snapSize,
-      hitPlane.point.y,
-      Math.round(hitPlane.point.z / snapSize) * snapSize
-    );
-
-    dispatch(actions.dropAsset({ id, asset, position }));
   }
 
   function connectContext(instance: CanvasContext) {
-    context.current = instance;
-
     if (instance.gl) {
       // TODO:
       instance.gl.shadowMap.enabled = false;
-      instance.gl.shadowMap.type = THREE.PCFSoftShadowMap;
+      instance.gl.shadowMap.type = PCFSoftShadowMap;
     }
-
-    setCreated(true);
   }
 
   const [drop] = useAssetItemDrop(canDrop, onHover, onDrop);
@@ -171,16 +117,16 @@ export default function ZoneEditorScene() {
         <>
           <AssetModel
             key={id}
-            instanceId={id}
             asset={asset}
-            position={new THREE.Vector3(x, y, z)}
-            dispatch={dispatch}
+            position={new Vector3(x, y, z)}
           />
-          {selected && <transformControls />}
+          {selected && <transformControls args={[]} />}
         </>
       )
     );
   }, [droppedAssets]);
+
+  console.log('render');
 
   return (
     <div
@@ -188,19 +134,17 @@ export default function ZoneEditorScene() {
       style={{ width: "100%", height: "100%", position: "relative" }}
     >
       <Canvas onCreated={connectContext}>
-        <MapControlsCamera />
-        <EditorEnvironment plane={self => (groundPlane.current = self)} />
+        <MapControlsCamera name="camera.zoneEditor" />
+        <EditorEnvironment plane={connectGroundPlane} />
         {droppedObjects}
         {dragSource && (
           <AssetModel
-            instanceId={-1}
             asset={dragSource.asset}
             position={dragSource.position}
-            dispatch={dispatch}
           />
         )}
       </Canvas>
-      <DebugStats context={context} />
+      {gl && <DebugStats gl={gl} />}
     </div>
   );
 }

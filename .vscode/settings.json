@@ -5,5 +5,6 @@
       "regex": "^(\\.{1,2}|assets|components|core|lib|pages|scene|store|style|util)/",
       "orderLevel": 100
     }
-  ]
+  ],
+  "importSorter.generalConfiguration.sortOnBeforeSave": true
 }

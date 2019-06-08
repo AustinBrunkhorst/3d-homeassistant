@@ -1,6 +1,6 @@
 // https://gist.github.com/mmazzarolo/d157c83e697fd46510bec4c3a5003f2c
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 interface Parameters {
   key: string;
