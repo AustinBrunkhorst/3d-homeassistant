@@ -1,5 +1,5 @@
 import throttle from 'raf-schd';
-import { useMemo, useRef } from 'react';
+import { useRef } from 'react';
 import {
     __EXPERIMENTAL_DND_HOOKS_THAT_MAY_CHANGE_AND_BREAK_MY_BUILD__ as dnd, ConnectableElement,
     DragObjectWithType, DropTargetMonitor
@@ -43,18 +43,16 @@ export function useAssetItemDrop(
   onDrop: DropHandler
 ) {
   const container = useRef<HTMLElement>();
-  const hover = useMemo(
-    () =>
-      throttle(({ asset }: AssetDragItem, monitor: DropTargetMonitor) => {
-        const input = monitor.getClientOffset();
+  const hover = throttle(
+    ({ asset }: AssetDragItem, monitor: DropTargetMonitor) => {
+      const input = monitor.getClientOffset();
 
-        if (!container.current || !input || !onHover) {
-          return;
-        }
+      if (!container.current || !input || !onHover) {
+        return;
+      }
 
-        onHover(new THREE.Vector2(input.x, input.y), asset);
-      }),
-    []
+      onHover(new THREE.Vector2(input.x, input.y), asset);
+    }
   );
 
   const [, connectDropTarget] = useDrop({

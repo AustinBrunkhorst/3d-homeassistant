@@ -1,12 +1,13 @@
-import { usePersistedMapControls } from 'core/hooks/ThreeHelpers';
 import React, { useEffect, useRef } from 'react';
 import { useThree } from 'react-three-fiber';
 
-export interface ZoneEditorCameraProps {
+import { usePersistedMapControls } from 'core/hooks/ThreeHelpers';
+
+export interface MapControlsCameraProps {
   connect?: (instance: THREE.Camera) => void;
 }
 
-export default function ZoneEditorCamera({ connect }: ZoneEditorCameraProps) {
+export default function MapControlsCamera({ connect }: MapControlsCameraProps) {
   const { size, setDefaultCamera, canvas } = useThree();
   const camera = useRef<THREE.Camera>();
 

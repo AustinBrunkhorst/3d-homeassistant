@@ -1,6 +1,7 @@
-import { AssetMetadata } from 'store/asset.models';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
+import { AssetMetadata } from 'store/asset.models';
 
 THREE.Cache.enabled = true;
 

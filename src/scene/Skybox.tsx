@@ -1,6 +1,6 @@
-import React from "react";
-import { extend, useUpdate } from "react-three-fiber";
-import Sky from "three-sky";
+import React from 'react';
+import { extend, useUpdate } from 'react-three-fiber';
+import Sky from 'three-sky';
 
 extend({ Sky });
 

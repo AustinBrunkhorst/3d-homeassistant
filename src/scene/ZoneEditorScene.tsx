@@ -1,6 +1,6 @@
 import throttle from 'raf-schd';
-import React, { useRef, useState } from 'react';
-import { Canvas, extend, useRender } from 'react-three-fiber';
+import React, { useMemo, useRef, useState } from 'react';
+import { Canvas, extend } from 'react-three-fiber';
 import { CanvasContext } from 'react-three-fiber/types/src/canvas';
 import * as THREE from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
@@ -10,10 +10,9 @@ import { GridHelper } from 'three/src/helpers/GridHelper';
 import { useAssetItemDrop } from 'core/dragDrop/assetItem';
 import { AssetMetadata } from 'store/asset.models';
 import AssetModel from './AssetModel';
-import ThreeDebugger from './ThreeDebugger';
-import ZoneEditorCamera from './ZoneEditorCamera';
-import EditorEnvironment from './ZoneEditorEnvironment';
-import ZoneObjects from './ZoneObjects';
+import DebugStats from './DebugStats';
+import EditorEnvironment from './EditorEnvironment';
+import MapControlsCamera from './MapControlsCamera';
 
 extend({ AxesHelper, GridHelper, MapControls });
 
@@ -155,7 +154,8 @@ export default function ZoneEditorScene() {
     context.current = instance;
 
     if (instance.gl) {
-      instance.gl.shadowMap.enabled = true;
+      // TODO:
+      instance.gl.shadowMap.enabled = false;
       instance.gl.shadowMap.type = THREE.PCFSoftShadowMap;
     }
 
@@ -174,74 +174,26 @@ export default function ZoneEditorScene() {
     }
   });
 
+  const droppedObjects = useMemo(() => {
+    return droppedAssets.map(({ asset, id, position }) => (
+      <AssetModel key={id} asset={asset} position={position} />
+    ));
+  }, [droppedAssets]);
+
   return (
     <div
       ref={connectContainer}
       style={{ width: "100%", height: "100%", position: "relative" }}
     >
       <Canvas onCreated={connectContext}>
-        <MainScene
-          groundPlane={groundPlane}
-          droppedAssets={droppedAssets}
-          dragSource={dragSource}
-        />
+        <MapControlsCamera />
+        <EditorEnvironment plane={self => (groundPlane.current = self)} />
+        {droppedObjects}
+        {dragSource && (
+          <AssetModel asset={dragSource.asset} position={dragSource.position} />
+        )}
       </Canvas>
-      <ThreeDebugger context={context} />
+      <DebugStats context={context} />
     </div>
   );
 }
-
-const grid = {
-  size: 10,
-  divisions: 10,
-  color: new THREE.Color("#5eb2aa"),
-  axesColor: new THREE.Color("white")
-};
-
-function MainScene({ groundPlane, droppedAssets, dragSource }) {
-  const scene = useRef();
-  const camera = useRef<THREE.Camera>();
-
-  useRender(({ gl }) => {
-    gl.autoClear = true;
-
-    if (scene.current && camera.current) {
-      gl.render(scene.current, camera.current);
-    }
-  }, true);
-
-  return (
-    <scene ref={scene}>
-      <ZoneEditorCamera connect={self => (camera.current = self)} />
-      <EditorEnvironment plane={self => (groundPlane.current = self)} />
-      <ZoneObjects objects={droppedAssets} />
-      {dragSource && (
-        <>
-          <AssetModel asset={dragSource.asset} position={dragSource.position} />
-          <gridHelper
-            args={[grid.size, grid.divisions, grid.axesColor, grid.color]}
-          />
-        </>
-      )}
-    </scene>
-  );
-}
-
-// function OrientationGizmo({}) {
-//   const scene = useRef();
-//   const camera = useRef<THREE.Camera>();
-
-//   useRender(({ gl }) => {
-//     gl.autoClear = true;
-
-//     if (scene.current && camera.current) {
-//       gl.render(scene.current, camera.current);
-//     }
-//   }, true);
-
-//   return (
-//     <scene ref={scene}>
-//       <axesHelper args={[4]} position={[-40, 0, -40]} />
-//     </scene>
-//   );
-// }

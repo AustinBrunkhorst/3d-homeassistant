@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useRender } from 'react-three-fiber';
 import * as THREE from 'three';
+
 import Skybox from './Skybox';
 
 function PointLight({ ...props }) {

@@ -9,7 +9,6 @@ function useLocalStorageRef(key: string, initialValue = null, debounce = 1000) {
     valueInStorage === null ? initialValue : JSON.parse(valueInStorage);
 
   const [persistValue] = useDebouncedCallback(state => {
-    console.log(`saving ${key}`);
     localStorage.setItem(key, JSON.stringify(state));
   }, debounce);
 
