@@ -1,18 +1,34 @@
+import produce from 'immer';
 import { createReducer } from 'typesafe-actions';
 
-import { add } from './zoneEditor.actions';
+import { DroppedAsset } from 'store/asset.models';
+import { dropAsset, selectAsset } from './zoneEditor.actions';
 
 export interface ZoneEditorState {
-  count: number;
+  droppedAssets: DroppedAsset[];
 }
 
-const initialState = {
-  count: 0
+export const initialState: ZoneEditorState = {
+  droppedAssets: []
 };
 
-const reducer = createReducer(initialState).handleAction(
-  add,
-  (state, action) => ({ count: state.count + action.payload })
-);
+const reducer = createReducer(initialState)
+  .handleAction(dropAsset, (state, { payload: { id, asset, position } }) =>
+    produce(state, draft => {
+      draft.droppedAssets.push({
+        id,
+        asset,
+        position,
+        selected: true
+      });
+    })
+  )
+  .handleAction(selectAsset, (state, { payload: { instanceId } }) =>
+    produce(state, draft => {
+      for (const asset of draft.droppedAssets) {
+        asset.selected = asset.id === instanceId;
+      }
+    })
+  );
 
 export default reducer;

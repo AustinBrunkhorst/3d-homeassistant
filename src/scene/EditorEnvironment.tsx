@@ -83,10 +83,10 @@ export default function EditorEnvironment({ plane }) {
         rotation={[-THREE.Math.degToRad(90), 0, THREE.Math.degToRad(90)]}
       >
         <planeGeometry attach="geometry" args={[10, 10]} />
-        <meshLambertMaterial
+        <meshBasicMaterial
           attach="material"
           color="#6cdcd1"
-          side={THREE.DoubleSide}
+          side={THREE.FrontSide}
         />
       </mesh>
 

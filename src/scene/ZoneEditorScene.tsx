@@ -1,28 +1,25 @@
 import throttle from 'raf-schd';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useReducer, useRef, useState } from 'react';
 import { Canvas, extend } from 'react-three-fiber';
 import { CanvasContext } from 'react-three-fiber/types/src/canvas';
 import * as THREE from 'three';
+import { TransformControls } from 'three/examples/js/controls/TransformControls';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 import { AxesHelper } from 'three/src/helpers/AxesHelper';
 import { GridHelper } from 'three/src/helpers/GridHelper';
 
 import { useAssetItemDrop } from 'core/dragDrop/assetItem';
-import { AssetMetadata } from 'store/asset.models';
+import { AssetMetadata, DroppedAsset } from 'store/asset.models';
+import * as actions from 'store/zoneEditor.actions';
+import reducer, { initialState } from 'store/zoneEditor.reducer';
 import AssetModel from './AssetModel';
 import DebugStats from './DebugStats';
 import EditorEnvironment from './EditorEnvironment';
 import MapControlsCamera from './MapControlsCamera';
 
-extend({ AxesHelper, GridHelper, MapControls });
+extend({ AxesHelper, GridHelper, MapControls, TransformControls });
 
 interface DragState {
-  asset: AssetMetadata;
-  position: THREE.Vector3;
-}
-
-interface DroppedAsset {
-  id: number;
   asset: AssetMetadata;
   position: THREE.Vector3;
 }
@@ -33,8 +30,9 @@ export default function ZoneEditorScene() {
   const groundPlane = useRef<THREE.Mesh>();
   const bounds = useRef<any>();
   const [dragSource, setDragSource] = useState<DragState>();
-  const [droppedAssets, setDroppedAssets] = useState<DroppedAsset[]>([]);
   const nextId = useRef(0);
+
+  const [{ droppedAssets }, dispatch] = useReducer(reducer, initialState);
 
   const canDrop = (inputOffset: THREE.Vector2) => {
     const { current: contextInstance } = context;
@@ -140,14 +138,7 @@ export default function ZoneEditorScene() {
       Math.round(hitPlane.point.z / snapSize) * snapSize
     );
 
-    setDroppedAssets(assets => [
-      ...assets,
-      {
-        asset,
-        id,
-        position
-      }
-    ]);
+    dispatch(actions.dropAsset({ id, asset, position }));
   }
 
   function connectContext(instance: CanvasContext) {
@@ -175,9 +166,20 @@ export default function ZoneEditorScene() {
   });
 
   const droppedObjects = useMemo(() => {
-    return droppedAssets.map(({ asset, id, position }) => (
-      <AssetModel key={id} asset={asset} position={position} />
-    ));
+    return droppedAssets.map(
+      ({ asset, id, selected, position: { x, y, z } }) => (
+        <>
+          <AssetModel
+            key={id}
+            instanceId={id}
+            asset={asset}
+            position={new THREE.Vector3(x, y, z)}
+            dispatch={dispatch}
+          />
+          {selected && <transformControls />}
+        </>
+      )
+    );
   }, [droppedAssets]);
 
   return (
@@ -190,7 +192,12 @@ export default function ZoneEditorScene() {
         <EditorEnvironment plane={self => (groundPlane.current = self)} />
         {droppedObjects}
         {dragSource && (
-          <AssetModel asset={dragSource.asset} position={dragSource.position} />
+          <AssetModel
+            instanceId={-1}
+            asset={dragSource.asset}
+            position={dragSource.position}
+            dispatch={dispatch}
+          />
         )}
       </Canvas>
       <DebugStats context={context} />

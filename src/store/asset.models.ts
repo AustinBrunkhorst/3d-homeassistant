@@ -4,3 +4,10 @@ export interface AssetMetadata {
   thumbnail: string;
   model: string;
 }
+
+export interface DroppedAsset {
+  id: number;
+  asset: AssetMetadata;
+  position: { x: number; y: number; z: number };
+  selected: boolean;
+}

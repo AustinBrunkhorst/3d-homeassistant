@@ -3,13 +3,20 @@ import * as THREE from 'three';
 
 import { loadModelAsset } from 'core/resourceManager';
 import { AssetMetadata } from 'store/asset.models';
+import * as actions from 'store/zoneEditor.actions';
 
 export interface ModelAssetProps {
+  instanceId: number;
   asset: AssetMetadata;
   position: THREE.Vector3;
+  dispatch: Function;
 }
-
-function ModelAsset({ asset, position }: ModelAssetProps) {
+function ModelAsset({
+  instanceId,
+  asset,
+  position,
+  dispatch
+}: ModelAssetProps) {
   const [model, setModel] = useState<THREE.Object3D>();
 
   useEffect(() => {
@@ -19,7 +26,15 @@ function ModelAsset({ asset, position }: ModelAssetProps) {
   }, [asset]);
 
   const modelObject = useMemo(
-    () => <primitive object={model} position={position} />,
+    () => (
+      <primitive
+        object={model}
+        position={position}
+        onClick={() =>
+          dispatch(actions.selectAsset({ instanceId, clearSelection: true }))
+        }
+      />
+    ),
     [model, position]
   );
 
