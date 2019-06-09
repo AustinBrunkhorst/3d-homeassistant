@@ -4,6 +4,7 @@ import React from 'react';
 import { DragDropContextProvider } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import ReactDOM from 'react-dom';
+import { StateInspector } from 'reinspect';
 import { ReduxProvider } from 'use-redux';
 
 import App from './App';
@@ -22,14 +23,16 @@ const store = configureStore();
 
 function render(Component) {
   ReactDOM.render(
-    <ThemeProvider theme={theme}>
-      <ReduxProvider store={store}>
-        <DragDropContextProvider backend={HTML5Backend}>
-          <GlobalStyle />
-          <Component />
-        </DragDropContextProvider>
-      </ReduxProvider>
-    </ThemeProvider>,
+    <DragDropContextProvider backend={HTML5Backend}>
+      <ThemeProvider theme={theme}>
+        <ReduxProvider store={store}>
+          <StateInspector>
+            <GlobalStyle />
+            <Component />
+          </StateInspector>
+        </ReduxProvider>
+      </ThemeProvider>
+    </DragDropContextProvider>,
     document.getElementById("root")
   );
 }

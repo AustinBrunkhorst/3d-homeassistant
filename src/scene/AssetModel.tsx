@@ -9,28 +9,33 @@ export interface ModelAssetProps {
   position: THREE.Vector3;
   onClick?: () => void;
 }
-function ModelAsset({
-  asset,
-  position,
-  onClick
-}: ModelAssetProps) {
+
+function ModelAsset({ asset, position, onClick }: ModelAssetProps) {
   const [model, setModel] = useState<THREE.Object3D>();
 
   useEffect(() => {
+    let connected = true;
+
     loadModelAsset(asset)
-      .then(setModel)
-      .catch(e => console.error("<ModelAsset /> loadModelAsset() failed", e));
+      .then(result => {
+        if (connected) {
+          setModel(result);
+        }
+      })
+      .catch(e => {
+        if (connected) {
+          console.error("<ModelAsset /> loadModelAsset() failed", e);
+        }
+      });
+
+    return () => {
+      connected = false;
+    };
   }, [asset]);
 
   const modelObject = useMemo(
-    () => (
-      <primitive
-        object={model}
-        position={position}
-        onClick={onClick}
-      />
-    ),
-    [model, position]
+    () => <primitive object={model} position={position} onClick={onClick} />,
+    [model, position, onClick]
   );
 
   const loadingObject = useMemo(

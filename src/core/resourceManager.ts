@@ -1,9 +1,11 @@
-import * as THREE from 'three';
+import {
+    Box3, BoxHelper, BufferGeometry, Cache, Color, Geometry, Group, Mesh, ObjectLoader, Vector3
+} from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 import { AssetMetadata } from 'store/asset.models';
 
-THREE.Cache.enabled = true;
+Cache.enabled = true;
 
 function fetchModel(path: string): Promise<THREE.Object3D> {
   const loader = new GLTFLoader();
@@ -23,9 +25,25 @@ function fetchModel(path: string): Promise<THREE.Object3D> {
           return reject();
         }
 
-        rootGroup.position.set(0, 0, 0);
+        scene.remove(rootGroup);
 
-        resolve(rootGroup);
+        const group = new Group();
+
+        group.add(rootGroup);
+
+        const bbox = new Box3().setFromObject(rootGroup);
+        const center = new Vector3();
+        const size = new Vector3();
+
+        bbox.getCenter(center);
+        bbox.getSize(size);
+
+        // center on ground
+        center.y -= size.y * 0.5;
+
+        rootGroup.position.sub(center);
+
+        resolve(group);
       },
       function onModelProgress(e) {
         console.debug("fetchModel progress", path, e);

@@ -1,33 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { useRender } from 'react-three-fiber';
+import { useRender, useResource } from 'react-three-fiber';
 import * as THREE from 'three';
 
+import { useAnimationFrame } from 'core/hooks/AnimationFrame';
 import Skybox from './Skybox';
-
-function PointLight({ ...props }) {
-  const light = useRef<THREE.PointLight>();
-  const helper = useRef<THREE.PointLightHelper>();
-
-  return (
-    <>
-      <pointLight
-        ref={light}
-        {...props}
-        onUpdate={() => {
-          if (helper.current) {
-            helper.current.update();
-          }
-        }}
-      />
-      {light.current && (
-        <pointLightHelper
-          args={[light.current, 0.25]}
-          color={light.current.color}
-        />
-      )}
-    </>
-  );
-}
 
 const Lights = ({ sunPosition }) => (
   <>
@@ -44,7 +20,7 @@ const Lights = ({ sunPosition }) => (
   </>
 );
 
-export default function EditorEnvironment({ plane }) {
+export default function EditorEnvironment() {
   const [sunProps, setSunProps] = useState({
     distance: 400000,
     turbidity: 5,
@@ -58,7 +34,7 @@ export default function EditorEnvironment({ plane }) {
 
   const sunPosition = useRef(new THREE.Vector3());
 
-  useRender(() => {
+  useAnimationFrame(() => {
     const normalized = THREE.Math.mapLinear(
       (Math.cos(Date.now() / 50000) + 1) * 0.5,
       0,
@@ -77,18 +53,6 @@ export default function EditorEnvironment({ plane }) {
   return (
     <>
       <Lights sunPosition={sunPosition} />
-
-      <mesh
-        ref={plane}
-        rotation={[-THREE.Math.degToRad(90), 0, THREE.Math.degToRad(90)]}
-      >
-        <planeGeometry attach="geometry" args={[10, 10]} />
-        <meshBasicMaterial
-          attach="material"
-          color="#6cdcd1"
-          side={THREE.FrontSide}
-        />
-      </mesh>
 
       <Skybox
         {...sunProps}

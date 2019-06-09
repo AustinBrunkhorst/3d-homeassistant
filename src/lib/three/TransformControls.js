@@ -1,7 +1,8 @@
+/* eslint-disable */
+
 /**
  * @author arodic / https://github.com/arodic
  */
-
 const THREE = require("three");
 
 THREE.TransformControls = function TransformControls(camera, domElement) {

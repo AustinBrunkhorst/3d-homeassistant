@@ -1,5 +1,6 @@
 import { Box } from '@material-ui/core';
 import React, { useRef, useState } from 'react';
+import { useThree } from 'react-three-fiber';
 import styled from 'styled-components';
 import { WebGLRenderer } from 'three';
 import useInterval from 'use-interval';
@@ -59,11 +60,11 @@ function WebGLStats({ fps, info }) {
   );
 }
 
-export interface ThreeDebuggerProps {
+export interface DebugStatsProps {
   gl: WebGLRenderer;
 }
 
-export default function ThreeDebugger({ gl }: ThreeDebuggerProps) {
+export default function DebugStats({ gl }: DebugStatsProps) {
   const [fps, setFps] = useState(0);
   const lastFrames = useRef(gl.info.render.frame);
 

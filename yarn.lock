@@ -3448,6 +3448,11 @@ depd@~1.1.2:
   resolved "https://registry.yarnpkg.com/depd/-/depd-1.1.2.tgz#9bcd52e14c097763e749b274c4346ed2e560b5a9"
   integrity sha1-m81S4UwJd2PnSbJ0xDRu0uVgtak=
 
+dequal@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/dequal/-/dequal-1.0.0.tgz#41c6065e70de738541c82cdbedea5292277a017e"
+  integrity sha512-/Nd1EQbQbI9UbSHrMiKZjFLrXSnU328iQdZKPQf78XQI6C+gutkFUeoHpG5J08Ioa6HeRbRNFpSIclh1xyG0mw==
+
 des.js@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/des.js/-/des.js-1.0.0.tgz#c074d2e2aa6a8a9a07dbd61f9a15c2cd83ec8ecc"
@@ -8736,6 +8741,13 @@ rehype-parse@^6.0.0:
     parse5 "^5.0.0"
     xtend "^4.0.1"
 
+reinspect@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/reinspect/-/reinspect-1.0.1.tgz#49948455fb1cafdf8878ca552c609e0bff746ff8"
+  integrity sha512-vzg/xHLgeHczBZhJ1K1xXOSD+vtQoJaH1K16sD32+V4hjaBYgQJb5up3oBYUDy+37OXTiyvM8O98PHthmSO1gA==
+  dependencies:
+    redux "^4.0.1"
+
 relateurl@0.2.x:
   version "0.2.7"
   resolved "https://registry.yarnpkg.com/relateurl/-/relateurl-0.2.7.tgz#54dbf377e51440aca90a4cd274600d3ff2d888a9"
@@ -10198,6 +10210,14 @@ use-debounce@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/use-debounce/-/use-debounce-2.0.2.tgz#dd73c523d43460bf017c1bd054bcae66333747e3"
   integrity sha512-OznHFKN6WQV6kRVaI4M3mAxEVZsf8vNJyz1fFaJT/iu5vFAICezTKeFt9YJ4w9InHMzOdpAva32+giRIVkEqug==
+
+use-deep-compare-effect@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/use-deep-compare-effect/-/use-deep-compare-effect-1.2.0.tgz#41a52b3dea028c082b57e35050427b482237eb47"
+  integrity sha512-u45BDmcLgXErTR4y18bUW8j7SzrS85JMPSYKAbzPJwTs3W7+Am1L3xwDhwNEbek41qfp7yfh4B2br5hJk4Q+lA==
+  dependencies:
+    "@babel/runtime" "^7.2.0"
+    dequal "^1.0.0"
 
 use-interval@^1.1.0:
   version "1.1.0"
