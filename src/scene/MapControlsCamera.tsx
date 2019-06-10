@@ -42,6 +42,12 @@ export default function MapControlsCamera({ name }: MapControlsCameraProps) {
           maxPolarAngle={Math.PI / 2}
           minDistance={2}
           maxDistance={100}
+          onUpdate={self => {
+            // TODO: find better way to pass to consumers
+            if (camera) {
+              camera.userData.controls = self;
+            }
+          }}
         />
       )}
     </>
@@ -99,4 +105,3 @@ function usePersistedMapControls(name: string) {
 
   return [setControls];
 }
-

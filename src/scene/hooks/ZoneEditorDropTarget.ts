@@ -23,7 +23,7 @@ interface DragState {
   position: Vector3;
 }
 
-const dropSnapSize = 0.1;
+const dropSnapSize = 0.05;
 
 export default function useZoneEditorDropTarget(dispatch: Function) {
   const viewport = useRef<DOMRect>();
