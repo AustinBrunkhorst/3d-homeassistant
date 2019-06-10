@@ -1,13 +1,23 @@
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
-export function useEventListener(
+export function useEventListener<T = any>(
   target: EventTarget,
   event: string,
-  listener: EventListenerOrEventListenerObject
+  listener: (e: T) => void
 ) {
   useEffect(() => {
-    target.addEventListener(event, listener);
+    if (target) {
+      console.log("on", event, target);
 
-    return () => target.removeEventListener(event, listener);
+      target.addEventListener(event, listener as any);
+    }
+
+    return () => {
+      if (target) {
+        console.log("off", event, target);
+
+        target.removeEventListener(event, listener as any);
+      }
+    };
   }, [target, event, listener]);
 }

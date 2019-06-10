@@ -1,11 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useResource, useThree } from 'react-three-fiber';
+import { Camera } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls';
 
 import { useLocalStorageRef } from 'core/hooks/LocalStorage';
 
 export interface MapControlsCameraProps {
   name: string;
+}
+
+export function getCameraMapControls(camera: Camera) {
+  return camera && camera.userData && camera.userData.controls;
+}
+
+function storeCameraMapControls(camera: Camera) {
+  if (camera && camera.userData) {
+    camera.userData.controls = camera;
+  }
 }
 
 export default function MapControlsCamera({ name }: MapControlsCameraProps) {
@@ -42,12 +53,7 @@ export default function MapControlsCamera({ name }: MapControlsCameraProps) {
           maxPolarAngle={Math.PI / 2}
           minDistance={2}
           maxDistance={100}
-          onUpdate={self => {
-            // TODO: find better way to pass to consumers
-            if (camera) {
-              camera.userData.controls = self;
-            }
-          }}
+          onUpdate={storeCameraMapControls}
         />
       )}
     </>
