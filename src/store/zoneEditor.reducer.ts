@@ -1,8 +1,10 @@
 import produce from 'immer';
-import { createReducer } from 'typesafe-actions';
+import { ActionType, createReducer } from 'typesafe-actions';
 
 import { DroppedAsset } from 'store/asset.models';
-import { dropAsset, selectAsset } from './zoneEditor.actions';
+import * as actions from './zoneEditor.actions';
+
+export type Actions = ActionType<typeof actions>;
 
 export interface ZoneEditorState {
   droppedAssets: DroppedAsset[];
@@ -13,22 +15,32 @@ export const initialState: ZoneEditorState = {
 };
 
 const reducer = createReducer(initialState)
-  .handleAction(dropAsset, (state, { payload: { id, asset, position } }) =>
+  .handleAction(actions.dropAsset, (state, { payload: { id, asset, position } }) =>
     produce(state, draft => {
+      // TODO: add clear selection option
+      for (const asset of draft.droppedAssets) {
+        asset.selected = false;
+      }
+
       draft.droppedAssets.push({
         id,
         asset,
         position,
         selected: true
-      });
+      });;
     })
   )
-  .handleAction(selectAsset, (state, { payload: { instanceId } }) =>
+  .handleAction(actions.selectAsset, (state, { payload: { instanceId } }) =>
     produce(state, draft => {
       for (const asset of draft.droppedAssets) {
         asset.selected = asset.id === instanceId;
       }
     })
-  );
+  ).handleAction(actions.deselectAllAssets, (state) =>
+    produce(state, draft => {
+      for (const asset of draft.droppedAssets) {
+        asset.selected = false;
+      }
+    }));
 
 export default reducer;

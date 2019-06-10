@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useThree, useUpdate } from 'react-three-fiber';
 import { Math as ThreeMath } from 'three';
 
@@ -8,23 +8,38 @@ import { getCameraMapControls } from './MapControlsCamera';
 function TransformControls({ object }) {
   const { camera, canvas } = useThree();
 
-  console.log("render transform controls");
-
   const ref = useUpdate(
     controls => {
-      console.log("update");
-
       if (object) {
-        console.log("attaching");
         controls.attach(object);
       }
     },
     [object]
   );
 
-  useEventListener(ref.current, "dragging-changed", ({ value: isDragging }) =>
-    disableCameraControls(isDragging)
-  );
+  useEffect(() => {
+    function disableCameraControls(disable: boolean) {
+      const cameraControls = getCameraMapControls(camera);
+
+      if (cameraControls) {
+        cameraControls.enabled = !disable;
+      }
+    }
+
+    const onDrag = ({ value: isDragging }) => disableCameraControls(isDragging);
+
+    const transformControls = ref.current;
+
+    if (transformControls) {
+      transformControls.addEventListener('dragging-changed', onDrag);
+    }
+
+    return () => {
+      if (transformControls) {
+        transformControls.removeEventListener('dragging-changed', onDrag);
+      }
+    }
+  }, [ref, camera, object]);
 
   useEventListener(window, "keydown", event => {
     const controls = ref.current;
@@ -71,16 +86,6 @@ function TransformControls({ object }) {
         controls.enabled = !controls.enabled;
     }
   });
-
-  function disableCameraControls(disable: boolean) {
-    const controls = getCameraMapControls(camera);
-
-    console.log("disable controls", disable, controls);
-
-    if (controls) {
-      controls.enabled = !disable;
-    }
-  }
 
   return <transformControls ref={ref} args={[camera, canvas]} />;
 }

@@ -13,9 +13,9 @@ export function getCameraMapControls(camera: Camera) {
   return camera && camera.userData && camera.userData.controls;
 }
 
-function storeCameraMapControls(camera: Camera) {
-  if (camera && camera.userData) {
-    camera.userData.controls = camera;
+function storeCameraMapControls(camera: Camera, controls) {
+  if (camera) {
+    camera.userData.controls = controls;
   }
 }
 
@@ -53,7 +53,7 @@ export default function MapControlsCamera({ name }: MapControlsCameraProps) {
           maxPolarAngle={Math.PI / 2}
           minDistance={2}
           maxDistance={100}
-          onUpdate={storeCameraMapControls}
+          onUpdate={controls => storeCameraMapControls(camera, controls)}
         />
       )}
     </>

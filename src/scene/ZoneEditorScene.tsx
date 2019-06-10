@@ -7,6 +7,7 @@ import reducer, { initialState } from 'store/zoneEditor.reducer';
 import DebugStats from './DebugStats';
 import EditorEnvironment from './EditorEnvironment';
 import useZoneEditorDropTarget from './hooks/ZoneEditorDropTarget';
+import { context as ZoneEditorContext } from './hooks/ZoneEditorState';
 import MapControlsCamera from './MapControlsCamera';
 import ZoneEditorObjects from './ZoneEditorObjects';
 
@@ -23,7 +24,9 @@ export default function ZoneEditorScene() {
   return (
     <Container>
       <Canvas onCreated={instance => (context.current = instance)}>
-        <Scene droppedAssets={droppedAssets} dragState={dragState} />
+        <ZoneEditorContext.Provider value={{ state: { droppedAssets }, dispatch }}>
+          <Scene droppedAssets={droppedAssets} dragState={dragState} />
+        </ZoneEditorContext.Provider>
       </Canvas>
       {context.current && context.current.gl && (
         <DebugStats gl={context.current.gl} />

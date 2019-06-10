@@ -11,5 +11,7 @@ export const dropAsset = createStandardAction("zoneEditor/DROP_MODEL_ASSET")<{
 
 export const selectAsset = createStandardAction("zoneEditor/SELECT_ASSET")<{
   instanceId: number;
-  clearSelection: boolean;
+  clearSelection?: boolean;
 }>();
+
+export const deselectAllAssets = createStandardAction("zoneEditor/DESELECT_ALL_ASSETS")();

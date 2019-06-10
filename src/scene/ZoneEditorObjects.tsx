@@ -1,8 +1,10 @@
-import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { useRender, useResource, useThree, useUpdate } from 'react-three-fiber';
-import { FrontSide, Math as ThreeMath, Object3D } from 'three';
+import React, { useMemo, useState } from 'react';
+import { useRender } from 'react-three-fiber';
+import { FrontSide, Math as ThreeMath } from 'three';
 
+import * as actions from 'store/zoneEditor.actions';
 import AssetModel from './AssetModel';
+import useZoneEditorState from './hooks/ZoneEditorState';
 import TransformControls from './TransformControls';
 
 function ZoneEditorObjects({ droppedAssets, dragState }) {
@@ -54,11 +56,14 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
 }
 
 const SelectableAssetModel = ({ id, asset, position, selected }: any) => {
-  const [object, setObject] = useState<any>();
+  const [object, setObject] = useState();
+  const [, dispatch] = useZoneEditorState();
+
+  const selectAsset = () => dispatch(actions.selectAsset({ instanceId: id }));
 
   return (
     <>
-      <AssetModel ref={setObject} key={id} asset={asset} position={position} />
+      <AssetModel ref={setObject} key={id} asset={asset} position={position} onClick={selectAsset} />
       {object && selected && <TransformControls object={object} />}
     </>
   );
