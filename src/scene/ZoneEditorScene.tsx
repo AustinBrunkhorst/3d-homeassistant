@@ -24,7 +24,9 @@ export default function ZoneEditorScene() {
   return (
     <Container>
       <Canvas onCreated={instance => (context.current = instance)}>
-        <ZoneEditorContext.Provider value={{ state: { droppedAssets }, dispatch }}>
+        <ZoneEditorContext.Provider
+          value={{ state: { droppedAssets }, dispatch }}
+        >
           <Scene droppedAssets={droppedAssets} dragState={dragState} />
         </ZoneEditorContext.Provider>
       </Canvas>

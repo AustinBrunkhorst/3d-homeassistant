@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import { useRender } from 'react-three-fiber';
-import { FrontSide, Math as ThreeMath } from 'three';
+import { FrontSide, Math as ThreeMath, Mesh, Scene } from 'three';
 
 import * as actions from 'store/zoneEditor.actions';
 import AssetModel from './AssetModel';
@@ -13,19 +13,6 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
   useRender(() => {
     setState(dragState.current);
   });
-
-  const ground = useMemo(
-    () => (
-      <mesh
-        name="ground"
-        rotation={[-ThreeMath.degToRad(90), 0, ThreeMath.degToRad(90)]}
-      >
-        <planeGeometry attach="geometry" args={[10, 10]} />
-        <meshBasicMaterial attach="material" color="#6cdcd1" side={FrontSide} />
-      </mesh>
-    ),
-    []
-  );
 
   const objects = useMemo(
     () =>
@@ -43,7 +30,7 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
 
   return (
     <>
-      {ground}
+      <Ground />
       {objects}
       {dragState.current && (
         <AssetModel
@@ -55,6 +42,22 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
   );
 }
 
+const groundObjectName = "ground";
+
+export function getGroundObject(scene: Scene) {
+  return scene && (scene.getObjectByName(groundObjectName) as Mesh);
+}
+
+const Ground = memo(() => (
+  <mesh
+    name={groundObjectName}
+    rotation={[-ThreeMath.degToRad(90), 0, ThreeMath.degToRad(90)]}
+  >
+    <planeGeometry attach="geometry" args={[2, 2]} />
+    <meshBasicMaterial attach="material" color="#6cdcd1" side={FrontSide} />
+  </mesh>
+));
+
 const SelectableAssetModel = ({ id, asset, position, selected }: any) => {
   const [object, setObject] = useState();
   const [, dispatch] = useZoneEditorState();
@@ -63,7 +66,13 @@ const SelectableAssetModel = ({ id, asset, position, selected }: any) => {
 
   return (
     <>
-      <AssetModel ref={setObject} key={id} asset={asset} position={position} onClick={selectAsset} />
+      <AssetModel
+        ref={setObject}
+        key={id}
+        asset={asset}
+        position={position}
+        onClick={selectAsset}
+      />
       {object && selected && <TransformControls object={object} />}
     </>
   );

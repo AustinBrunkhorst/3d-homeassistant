@@ -1,5 +1,5 @@
 import throttle from 'raf-schd';
-import { useContext, useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import {
     __EXPERIMENTAL_DND_HOOKS_THAT_MAY_CHANGE_AND_BREAK_MY_BUILD__ as dnd, DragObjectWithType,
     DropTargetMonitor
@@ -7,10 +7,10 @@ import {
 import { Mesh, Vector2, Vector3 } from 'three';
 
 import { AssetItemDragType } from 'core/dragDrop/types';
-import { ZoneEditorContext } from 'scene/ZoneEditorContext';
 import { AssetMetadata } from 'store/asset.models';
 import * as actions from 'store/zoneEditor.actions';
 import { snap } from 'util/Vector';
+import { getGroundObject } from '../ZoneEditorObjects';
 
 const { useDrop } = dnd;
 
@@ -131,16 +131,8 @@ export default function useZoneEditorDropTarget(dispatch: Function) {
       return;
     }
 
-    const groundObjectName = "ground";
-
     // TODO: this is hacky - figure out why DragDropContext is null inside Canvas
-    ground.current = scene.getObjectByName(groundObjectName) as Mesh;
-
-    if (!ground.current) {
-      throw new Error(
-        `useZoneEditorDropTarget() expected an object in the scene with name "${groundObjectName}"`
-      );
-    }
+    ground.current = getGroundObject(scene);
 
     viewport.current = canvas.getBoundingClientRect() as DOMRect;
 

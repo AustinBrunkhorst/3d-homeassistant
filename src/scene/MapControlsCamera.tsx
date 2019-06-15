@@ -45,13 +45,13 @@ export default function MapControlsCamera({ name }: MapControlsCameraProps) {
         }}
       />
       {camera && canvas && (
-        <mapControls
+        <orbitControls
           ref={controls}
           args={[camera, canvas]}
           enableDamping={false}
           screenSpacePanning={false}
           maxPolarAngle={Math.PI / 2}
-          minDistance={2}
+          minDistance={0}
           maxDistance={100}
           onUpdate={controls => storeCameraMapControls(camera, controls)}
         />
