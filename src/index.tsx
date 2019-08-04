@@ -9,8 +9,8 @@ import React from 'react';
 import { DragDropContextProvider } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
 import { StateInspector } from 'reinspect';
-import { ReduxProvider } from 'use-redux';
 
 import App from './App';
 import { isProd } from './environment';
@@ -32,12 +32,12 @@ function render(Component) {
   ReactDOM.render(
     <DragDropContextProvider backend={HTML5Backend}>
       <ThemeProvider theme={theme}>
-        <ReduxProvider store={store}>
+        <Provider store={store}>
           <StateInspector>
             <GlobalStyle />
             <Component />
           </StateInspector>
-        </ReduxProvider>
+        </Provider>
       </ThemeProvider>
     </DragDropContextProvider>,
     document.getElementById("root")
@@ -47,41 +47,6 @@ function render(Component) {
 if (isProd) {
   registerServiceWorker();
 }
-
-function saveAuthLocalStorage(data) {
-  localStorage.setItem("auth", JSON.stringify(data));
-}
-
-function restoreAuthLocalStorage() {
-  return Promise.resolve(JSON.parse(
-    localStorage.getItem("auth") || "null"
-  ) as AuthData);
-}
-
-async function connect() {
-  let auth;
-
-  try {
-    // Try to pick up authentication after user logs in
-    auth = await getAuth({
-      hassUrl: "http://hassio.local:8123",
-      saveTokens: saveAuthLocalStorage,
-      loadTokens: restoreAuthLocalStorage
-    });
-  } catch (e) {
-    console.log("error logging in", e);
-  }
-
-  const connection = await createConnection({ auth });
-
-  const result = await getStates(connection);
-
-  for (const state of result) {
-    console.log(state.entity_id, state.attributes);
-  }
-}
-
-connect();
 
 render(App);
 

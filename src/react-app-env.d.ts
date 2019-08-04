@@ -12,8 +12,9 @@ namespace JSX {
   }
 }
 
-declare module "*.fbx" {
-  const publicPath: string;
-
-  export default publicPath;
+/**
+ * Returns an array of all paths matching the require context
+ */
+function requireAll(requireContext) {
+  return requireContext.keys().map(requireContext);
 }

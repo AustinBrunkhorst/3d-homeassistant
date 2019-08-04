@@ -1,14 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { useRedux } from 'use-redux';
+import { useSelector } from 'react-redux';
 
 import { AssetMetadata } from 'store/asset.models';
+import { getAllAssets } from 'store/asset.selector';
 import AssetList from './AssetList';
 import { RootContainer } from './elements';
 import Navigation from './Navigation';
 import SearchInput from './SearchInput';
 
 function AssetSidebar() {
-  const [{ assets }] = useRedux();
+  const assets = useSelector(getAllAssets);
   const [searchQuery, setSearchQuery] = useState("");
   const filteredAssets = useMemo(() => filterAssets(searchQuery, assets), [
     assets,

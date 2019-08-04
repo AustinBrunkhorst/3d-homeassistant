@@ -1,3 +1,2 @@
-import * as zoneEditor from './zoneEditor.actions';
-
-export default zoneEditor;
+export * from './zoneEditor.actions';
+export * from './hass.actions';
