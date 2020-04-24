@@ -8,7 +8,16 @@ export const loginAsync = createAsyncAction(
   'HAAS_LOGIN_FAILURE'
 )<void, Auth, Error>();
 
-export const loadAreas = createStandardAction('HASS_LOAD_AREAS')<AreaConfiguration[]>(); 
+export const loadAreasAsync = createAsyncAction(
+  'HASS_LOAD_AREAS',
+  'HASS_LOAD_AREAS_SUCCESS',
+  'HAAS_LOAD_AREAS_FAILURE'
+)<void, AreaConfiguration[], Error>(); 
 
-export const loadEntities = createStandardAction('HASS_LOAD_ENTITIES')<HassEntity[]>();
+export const loadEntitiesAsync = createAsyncAction(
+  'HASS_LOAD_ENTITIES',
+  'HASS_LOAD_ENTITIES_SUCCESS',
+  'HASS_LOAD_ENTITIES_FAILURE'
+)<void, HassEntity[], Error>(); 
+
 export const updateEntity = createStandardAction('HASS_UPDATE_ENTITY')<{ entity_id: string, state: HassEntity }>();

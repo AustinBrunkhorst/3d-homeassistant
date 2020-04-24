@@ -39,6 +39,8 @@ export default function useZoneEditorDropTarget(dispatch: Function) {
 
     const ndc = new Vector2();
 
+    //test
+
     ndc.x = ((x - left) / width) * 2 - 1;
     ndc.y = -((y - top) / height) * 2 + 1;
 
@@ -72,7 +74,7 @@ export default function useZoneEditorDropTarget(dispatch: Function) {
     accept: AssetItemDragType,
     canDrop(_: AssetDragItem, monitor: DropTargetMonitor) {
       const input = monitor.getClientOffset();
-
+      
       if (!input) {
         return false;
       }
@@ -125,9 +127,12 @@ export default function useZoneEditorDropTarget(dispatch: Function) {
     // TODO: this is hacky - figure out why DragDropContext is null inside Canvas
     ground.current = getGroundObject(scene);
 
-    viewport.current = canvas.getBoundingClientRect() as DOMRect;
+    // TODO: fix this
+    setTimeout(() => {
+      viewport.current = canvas.getBoundingClientRect();
 
-    connectDropTarget(canvas);
+      connectDropTarget(canvas);
+    });
   }, [connectDropTarget]);
 
   return { dragState, setContext, context };

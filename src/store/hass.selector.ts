@@ -1,4 +1,7 @@
+import { createSelector } from "reselect";
 import { State } from "./root.reducer";
 
-export const getAuthState = (state: State) => state.hass.auth;
-export const getAreas = (state: State) => Object.values(state.hass.areas);
+const selectHass = (state: State) => state.hass;
+
+export const selectLoggedIn = createSelector(selectHass, state => state.loginSuccessful);
+export const selectAreas = createSelector(selectHass, state => state.areas);

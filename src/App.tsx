@@ -1,62 +1,30 @@
-import AppBar from "@material-ui/core/AppBar";
-import Box from "@material-ui/core/Box";
-import IconButton from "@material-ui/core/IconButton";
-import { makeStyles } from "@material-ui/core/styles";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import MenuIcon from "@material-ui/icons/Menu";
+import { CircularProgress } from "@material-ui/core";
 import React from "react";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { BrowserRouter as Router, Route } from "react-router-dom";
-import ZoneIndexPage from "pages/zone";
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    flexGrow: 1
-  },
-  menuButton: {
-    marginRight: theme.spacing(2)
-  }
-}));
-
-function DenseAppBar() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.root}>
-      <AppBar position="static">
-        <Toolbar variant="dense">
-          <IconButton
-            edge="start"
-            className={classes.menuButton}
-            color="inherit"
-            aria-label="Menu"
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" color="inherit">
-            Zone Editor
-          </Typography>
-        </Toolbar>
-      </AppBar>
-    </div>
-  );
-}
+import AreaIndexPage from "pages/area";
+import AreaEditPage from "pages/area/edit";
+import * as hass from "store/hass.actions";
+import { selectLoggedIn } from "store/hass.selector";
 
 function App() {
+  const dispatch = useDispatch();
+  const loggedIn = useSelector(selectLoggedIn, shallowEqual);
+
+  if (!loggedIn) {
+    dispatch(hass.loginAsync.request());
+
+    return (
+      <CircularProgress />
+    );
+  }
+  
   return (
     <Router>
-      <Box display="flex" flexDirection="column" style={{ height: "100%" }}>
-        <DenseAppBar />
-
-        <Route path="/" exact component={ZoneIndexPage} />
-        <Route path="/entities" component={EntitiesList} />
-      </Box>
+      <Route path="/" exact component={AreaIndexPage} />
+      <Route path="/area/:id" component={AreaEditPage} />
     </Router>
   );
-}
-
-function EntitiesList() {
-  return <div>hi</div>;
 }
 
 export default App;

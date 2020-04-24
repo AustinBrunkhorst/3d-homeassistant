@@ -7,13 +7,14 @@ import { Area } from "./hass.model";
 export type Actions = ActionType<typeof actions>;
 
 export interface HassState {
+  loginSuccessful: boolean;
   auth?: AuthData;
-  areas: { [id: string]: Area };
+  areas?: { [id: string]: Area };
   entities: { [id: string]: HassEntity };
 }
 
 export const initialState: HassState = {
-  areas: {},
+  loginSuccessful: false,
   entities: {}
 };
 
@@ -22,20 +23,32 @@ const reducer = createReducer(initialState)
     actions.loginAsync.success,
     (state, { payload: { data: auth } }) =>
       produce(state, draft => {
+        draft.loginSuccessful = true;
         draft.auth = auth;
       })
   )
   .handleAction(
-    actions.loadAreas,
-    (state, { payload }) =>
+    actions.loginAsync.failure,
+    (state) =>
       produce(state, draft => {
-        for (const area of payload) {
-          draft.areas[area.area_id] = area;
-        }
+        draft.loginSuccessful = false;
       })
   )
   .handleAction(
-    actions.loadEntities,
+    actions.loadAreasAsync.success,
+    (state, { payload }) =>
+      produce(state, draft => {
+        const areas = {};
+
+        for (const area of payload) {
+          areas[area.area_id] = area;
+        }
+
+        draft.areas = areas;
+      })
+  )
+  .handleAction(
+    actions.loadEntitiesAsync.success,
     (state, { payload }) =>
       produce(state, draft => {
         for (const entity of payload) {

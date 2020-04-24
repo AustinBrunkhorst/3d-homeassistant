@@ -6,5 +6,6 @@
       "orderLevel": 100
     }
   ],
-  "importSorter.generalConfiguration.sortOnBeforeSave": true
+  "importSorter.generalConfiguration.sortOnBeforeSave": true,
+  "editor.tabSize": 2
 }

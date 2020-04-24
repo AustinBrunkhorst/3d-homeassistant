@@ -1,12 +1,10 @@
-import React, { useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
-
-import { AssetMetadata } from 'store/asset.models';
-import { getAllAssets } from 'store/asset.selector';
-import AssetList from './AssetList';
-import { RootContainer } from './elements';
-import Navigation from './Navigation';
-import SearchInput from './SearchInput';
+import React, { useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import { AssetMetadata } from "store/asset.models";
+import { getAllAssets } from "store/asset.selector";
+import AssetList from "./AssetList";
+import { RootContainer } from "./elements";
+import SearchInput from "./SearchInput";
 
 function AssetSidebar() {
   const assets = useSelector(getAllAssets);
@@ -20,7 +18,6 @@ function AssetSidebar() {
     <RootContainer>
       <SearchInput onChange={setSearchQuery} value={searchQuery} />
       <AssetList assets={filteredAssets} />
-      <Navigation />
     </RootContainer>
   );
 }
