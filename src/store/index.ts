@@ -1,13 +1,12 @@
-import createSagaMiddleware from '@redux-saga/core';
-import { applyMiddleware, createStore } from 'redux';
-import { composeWithDevTools } from 'redux-devtools-extension';
-
-import { isProd } from '../environment';
-import rootReducer from './root.reducer';
-import getSagas from './sagas';
+import createSagaMiddleware from "@redux-saga/core";
+import { applyMiddleware, createStore } from "redux";
+import { composeWithDevTools } from "redux-devtools-extension";
+import { isProd } from "../environment";
+import rootReducer from "./root.reducer";
+import getSagas from "./sagas";
 
 export function configureStore(initialState = {}) {
-  const sagaMiddleware = createSagaMiddleware()
+  const sagaMiddleware = createSagaMiddleware();
   const store = createStore(rootReducer, initialState, composeWithDevTools(applyMiddleware(sagaMiddleware)));
 
   let sagaTask = sagaMiddleware.run(function* () {
@@ -21,7 +20,7 @@ export function configureStore(initialState = {}) {
     });
 
     module.hot.accept('./sagas', () => {
-      const getNewSagas = require('./sagas/index');
+      const getNewSagas = require('./sagas/index').default;
 
       sagaTask.cancel()
       sagaTask.toPromise().then(() => {

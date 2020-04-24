@@ -1,6 +1,5 @@
-import { createContext, useContext } from 'react';
-
-import { Actions, initialState, ZoneEditorState } from 'store/zoneEditor.reducer';
+import { createContext, useContext } from "react";
+import { initialState, ZoneEditorState } from "store/zoneEditor.reducer";
 
 interface ContextProps {
   state: ZoneEditorState;

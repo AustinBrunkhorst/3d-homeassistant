@@ -1,4 +1,5 @@
 /// <reference types="react-scripts" />
+/// <reference types="home-assistant-js-websocket/dist/connection" />
 
 // https://github.com/Microsoft/TypeScript/issues/30471#issuecomment-474963436
 declare module "console" {

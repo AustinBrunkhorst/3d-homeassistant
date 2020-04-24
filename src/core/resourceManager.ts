@@ -1,5 +1,5 @@
 import {
-    Box3, BoxHelper, BufferGeometry, Cache, Color, Geometry, Group, Mesh, ObjectLoader, Vector3
+  Box3, Cache, Object3D, Group, Vector3
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
@@ -7,7 +7,7 @@ import { AssetMetadata } from 'store/asset.models';
 
 Cache.enabled = true;
 
-function fetchModel(path: string): Promise<THREE.Object3D> {
+function fetchModel(path: string): Promise<Object3D> {
   const loader = new GLTFLoader();
 
   return new Promise((resolve, reject) => {

@@ -1,15 +1,14 @@
-import React, { memo, useReducer } from 'react';
-import { Canvas } from 'react-three-fiber';
-import styled from 'styled-components';
-
-import 'scene/extensions';
-import reducer, { initialState } from 'store/zoneEditor.reducer';
-import DebugStats from './DebugStats';
-import EditorEnvironment from './EditorEnvironment';
-import useZoneEditorDropTarget from './hooks/ZoneEditorDropTarget';
-import { context as ZoneEditorContext } from './hooks/ZoneEditorState';
-import MapControlsCamera from './MapControlsCamera';
-import ZoneEditorObjects from './ZoneEditorObjects';
+import React, { memo, useReducer } from "react";
+import { Canvas } from "react-three-fiber";
+import styled from "styled-components";
+import "scene/extensions";
+import reducer, { initialState } from "store/zoneEditor.reducer";
+import DebugStats from "./DebugStats";
+import EditorEnvironment from "./EditorEnvironment";
+import useZoneEditorDropTarget from "./hooks/ZoneEditorDropTarget";
+import { context as ZoneEditorContext } from "./hooks/ZoneEditorState";
+import MapControlsCamera from "./MapControlsCamera";
+import ZoneEditorObjects from "./ZoneEditorObjects";
 
 const Container = styled.div`
   position: relative;
@@ -19,11 +18,11 @@ const Container = styled.div`
 
 export default function ZoneEditorScene() {
   const [{ droppedAssets }, dispatch] = useReducer(reducer, initialState);
-  const [dragState, context] = useZoneEditorDropTarget(dispatch);
+  const { dragState, setContext, context } = useZoneEditorDropTarget(dispatch);
 
   return (
     <Container>
-      <Canvas onCreated={instance => (context.current = instance)}>
+      <Canvas onCreated={setContext}>
         <ZoneEditorContext.Provider
           value={{ state: { droppedAssets }, dispatch }}
         >

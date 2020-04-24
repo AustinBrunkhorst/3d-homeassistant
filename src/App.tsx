@@ -1,14 +1,13 @@
-import AppBar from '@material-ui/core/AppBar';
-import Box from '@material-ui/core/Box';
-import IconButton from '@material-ui/core/IconButton';
-import { makeStyles } from '@material-ui/core/styles';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import MenuIcon from '@material-ui/icons/Menu';
-import React from 'react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
-
-import ZoneEditorPage from 'pages/ZoneEditor';
+import AppBar from "@material-ui/core/AppBar";
+import Box from "@material-ui/core/Box";
+import IconButton from "@material-ui/core/IconButton";
+import { makeStyles } from "@material-ui/core/styles";
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
+import MenuIcon from "@material-ui/icons/Menu";
+import React from "react";
+import { BrowserRouter as Router, Route } from "react-router-dom";
+import ZoneIndexPage from "pages/zone";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -46,10 +45,10 @@ function DenseAppBar() {
 function App() {
   return (
     <Router>
-      <Box display="flex" flexDirection="column">
+      <Box display="flex" flexDirection="column" style={{ height: "100%" }}>
         <DenseAppBar />
 
-        <Route path="/" exact component={ZoneEditorPage} />
+        <Route path="/" exact component={ZoneIndexPage} />
         <Route path="/entities" component={EntitiesList} />
       </Box>
     </Router>

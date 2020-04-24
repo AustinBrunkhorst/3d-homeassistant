@@ -5,7 +5,7 @@ import { FrontSide, Math as ThreeMath, Mesh, Scene } from 'three';
 import * as actions from 'store/zoneEditor.actions';
 import AssetModel from './AssetModel';
 import useZoneEditorState from './hooks/ZoneEditorState';
-import TransformControls from './TransformControls';
+import ThreeTransformControls from './TransformControls';
 
 function ZoneEditorObjects({ droppedAssets, dragState }) {
   const [, setState] = useState(dragState);
@@ -73,7 +73,7 @@ const SelectableAssetModel = ({ id, asset, position, selected }: any) => {
         position={position}
         onClick={selectAsset}
       />
-      {object && selected && <TransformControls object={object} />}
+      {object && selected && <ThreeTransformControls object={object} />}
     </>
   );
 };

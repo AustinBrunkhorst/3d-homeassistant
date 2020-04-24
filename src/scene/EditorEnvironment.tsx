@@ -1,13 +1,11 @@
-import React, { useRef, useState } from 'react';
-import { useRender, useResource } from 'react-three-fiber';
-import * as THREE from 'three';
-
-import { useAnimationFrame } from 'core/hooks/AnimationFrame';
-import Skybox from './Skybox';
+import React, { useRef, useState } from "react";
+import * as THREE from "three";
+import { useAnimationFrame } from "core/hooks/AnimationFrame";
+import Skybox from "./Skybox";
 
 const Lights = ({ sunPosition }) => (
   <>
-    <ambientLight color="white" intensity={0.5} />
+    <ambientLight color={new THREE.Color("white")} intensity={0.5} />
     {/* <PointLight
       color="red"
       position={[0, 2, 0]}

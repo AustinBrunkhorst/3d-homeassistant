@@ -1,18 +1,13 @@
-import throttle from 'raf-schd';
-import { useLayoutEffect, useRef } from 'react';
-import {
-    __EXPERIMENTAL_DND_HOOKS_THAT_MAY_CHANGE_AND_BREAK_MY_BUILD__ as dnd, DragObjectWithType,
-    DropTargetMonitor
-} from 'react-dnd';
-import { Mesh, Vector2, Vector3 } from 'three';
-
-import { AssetItemDragType } from 'core/dragDrop/types';
-import { AssetMetadata } from 'store/asset.models';
-import * as actions from 'store/zoneEditor.actions';
-import { snap } from 'util/Vector';
-import { getGroundObject } from '../ZoneEditorObjects';
-
-const { useDrop } = dnd;
+import throttle from "raf-schd";
+import { useCallback, useRef } from "react";
+import { DragObjectWithType, DropTargetMonitor, useDrop } from "react-dnd";
+import { CanvasContext } from "react-three-fiber";
+import { Mesh, Vector2, Vector3 } from "three";
+import { AssetItemDragType } from "core/dragDrop/types";
+import { AssetMetadata } from "store/asset.models";
+import * as actions from "store/zoneEditor.actions";
+import { snap } from "util/Vector";
+import { getGroundObject } from "../ZoneEditorObjects";
 
 interface AssetDragItem extends DragObjectWithType {
   asset: AssetMetadata;
@@ -118,14 +113,10 @@ export default function useZoneEditorDropTarget(dispatch: Function) {
     }
   });
 
-  useLayoutEffect(() => {
-    const { current: instance } = context;
+  const setContext = useCallback((instance: CanvasContext) => {
+    context.current = instance;
 
-    if (!instance) {
-      return;
-    }
-
-    const { canvas, scene } = instance;
+    const { canvas, scene } = context.current;
 
     if (!canvas || !scene) {
       return;
@@ -137,7 +128,7 @@ export default function useZoneEditorDropTarget(dispatch: Function) {
     viewport.current = canvas.getBoundingClientRect() as DOMRect;
 
     connectDropTarget(canvas);
-  }, [context.current, connectDropTarget]);
+  }, [connectDropTarget]);
 
-  return [dragState, context];
+  return { dragState, setContext, context };
 }

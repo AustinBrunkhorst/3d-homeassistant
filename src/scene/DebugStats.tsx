@@ -1,9 +1,8 @@
-import { Box } from '@material-ui/core';
-import React, { useRef, useState } from 'react';
-import { useThree } from 'react-three-fiber';
-import styled from 'styled-components';
-import { WebGLRenderer } from 'three';
-import useInterval from 'use-interval';
+import { Box } from "@material-ui/core";
+import React, { useRef, useState } from "react";
+import styled from "styled-components";
+import { WebGLRenderer } from "three";
+import useInterval from "use-interval";
 
 const Container = styled(Box).attrs({
   display: "flex",

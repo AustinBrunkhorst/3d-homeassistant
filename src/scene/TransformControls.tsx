@@ -4,11 +4,12 @@ import { Math as ThreeMath } from 'three';
 
 import { useEventListener } from 'core/hooks/EventListener';
 import { getCameraMapControls } from './MapControlsCamera';
+import ThreeTransformControls from 'lib/three/TransformControls';
 
 function TransformControls({ object }) {
   const { camera, canvas } = useThree();
 
-  const ref = useUpdate(
+  const ref = useUpdate<ThreeTransformControls>(
     controls => {
       if (object) {
         controls.attach(object);

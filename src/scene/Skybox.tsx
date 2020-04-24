@@ -15,7 +15,7 @@ export default function Skybox({
   azimuth,
   updateSunPosition
 }) {
-  const ref = useUpdate(
+  const ref = useUpdate<Sky>(
     ({ material: { uniforms } }) => {
       uniforms.turbidity.value = turbidity;
       uniforms.rayleigh.value = rayleigh;

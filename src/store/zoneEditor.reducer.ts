@@ -1,8 +1,7 @@
-import produce from 'immer';
-import { ActionType, createReducer } from 'typesafe-actions';
-
-import { DroppedAsset } from 'store/asset.models';
-import * as actions from './zoneEditor.actions';
+import produce from "immer";
+import { ActionType, createReducer } from "typesafe-actions";
+import { DroppedAsset } from "store/asset.models";
+import * as actions from "./zoneEditor.actions";
 
 export type Actions = ActionType<typeof actions>;
 
@@ -27,7 +26,7 @@ const reducer = createReducer(initialState)
         asset,
         position,
         selected: true
-      });;
+      });
     })
   )
   .handleAction(actions.selectAsset, (state, { payload: { instanceId } }) =>
