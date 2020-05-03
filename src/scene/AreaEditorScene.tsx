@@ -6,7 +6,7 @@ import styled from "styled-components";
 import "scene/extensions";
 import * as actions from "store/actions/areaEditor.actions";
 import { Area } from "store/models/hass.model";
-import { selectObjects } from "store/selectors/areaEditor.selector";
+import { selectObjects, selectSelectedObjects } from "store/selectors/areaEditor.selector";
 import DebugStats from "./DebugStats";
 import EditorEnvironment from "./EditorEnvironment";
 import useAreaEditorDropTarget from "./hooks/AreaEditorDropTarget";
@@ -26,6 +26,7 @@ export interface AreaEditorSceneProps {
 export default function AreaEditorScene({ area }: AreaEditorSceneProps) {
   const dispatch = useDispatch();
   const objects = useSelector(selectObjects);
+  const selectedObjects = useSelector(selectSelectedObjects);
   const nextId = useRef(0);
   const reduxContext = useContext(ReactReduxContext);
 
@@ -54,6 +55,21 @@ export default function AreaEditorScene({ area }: AreaEditorSceneProps) {
   useHotkeys("ctrl+y", () => {
     dispatch(actions.redo());
   });
+
+  useHotkeys("ctrl+d", (e) => {
+    e.preventDefault();
+
+    if (selectedObjects.length === 0) {
+      return;
+    }
+
+    const [toDuplicate] = selectedObjects;
+
+    dispatch(actions.addObject({
+      ...toDuplicate,
+      id: generateId()
+    }));
+  }, [selectedObjects]);
 
   return (
     <Container>

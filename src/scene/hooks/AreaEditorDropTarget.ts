@@ -6,16 +6,16 @@ import { CanvasContext } from "react-three-fiber";
 import { Mesh, Quaternion, Vector2, Vector3 } from "three";
 import { AssetItemDragType } from "core/dragDrop/types";
 import * as actions from "store/actions";
-import { Model } from "store/models/areaEditor.model";
+import { SceneObject } from "store/models/areaEditor.model";
 import { snap } from "util/Vector";
 import { getGroundObject } from "../ZoneEditorObjects";
 
-interface AssetDragItem extends DragObjectWithType {
-  asset: Model;
+interface SceneObjectDragItem extends DragObjectWithType {
+  object: SceneObject;
 }
 
 interface DragState {
-  asset: Model;
+  object: SceneObject;
   position: Vector3;
 }
 
@@ -51,7 +51,7 @@ export default function useAreaEditorDropTarget(generateId: () => number) {
   }
 
   const hover = throttle(function onHover(
-    { asset }: AssetDragItem,
+    { object }: SceneObjectDragItem,
     monitor: DropTargetMonitor
   ) {
     const input = monitor.getClientOffset();
@@ -63,7 +63,7 @@ export default function useAreaEditorDropTarget(generateId: () => number) {
     const position = screenToDropPosition(input);
 
     if (position) {
-      dragState.current = { asset, position };
+      dragState.current = { object, position };
     } else {
       dragState.current = undefined;
     }
@@ -71,7 +71,7 @@ export default function useAreaEditorDropTarget(generateId: () => number) {
 
   const [, connectDropTarget] = useDrop({
     accept: AssetItemDragType,
-    canDrop(_: AssetDragItem, monitor: DropTargetMonitor) {
+    canDrop(_: SceneObjectDragItem, monitor: DropTargetMonitor) {
       const input = monitor.getClientOffset();
       
       if (!input) {
@@ -83,7 +83,7 @@ export default function useAreaEditorDropTarget(generateId: () => number) {
       return position !== null;
     },
     hover,
-    drop({ asset }: AssetDragItem, monitor: DropTargetMonitor) {
+    drop({ object }: SceneObjectDragItem, monitor: DropTargetMonitor) {
       if (hover.cancel) {
         hover.cancel();
       }
@@ -107,12 +107,14 @@ export default function useAreaEditorDropTarget(generateId: () => number) {
       const id = generateId();
 
       dispatch(
-        actions.addModel({
+        actions.addObject({
+          ...object,
           id,
-          asset,
-          position,
-          rotation,
-          scale,
+          transform: {
+            position: { x: position.x, y: position.y, z: position.z },
+            rotation: { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w },
+            scale: { x: scale.x, y: scale.y, z: scale.z },
+          }
         })
       );
     }

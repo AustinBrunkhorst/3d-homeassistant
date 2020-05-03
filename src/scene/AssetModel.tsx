@@ -4,7 +4,7 @@ import { loadModelAsset } from "core/resourceManager";
 import { Model } from "store/models/areaEditor.model";
 
 export interface ModelAssetProps {
-  asset: Model;
+  model: Model;
   position: THREE.Vector3;
   rotation: THREE.Quaternion;
   scale: THREE.Vector3;
@@ -12,7 +12,7 @@ export interface ModelAssetProps {
 }
 
 const ModelAsset = forwardRef(
-  ({ asset, position, rotation, scale, onClick }: ModelAssetProps, ref) => {
+  ({ model: asset, position, rotation, scale, onClick }: ModelAssetProps, ref) => {
     const [model, setModel] = useState<THREE.Object3D>();
 
     useEffect(() => {
@@ -40,9 +40,9 @@ const ModelAsset = forwardRef(
         <primitive
           ref={ref}
           object={model}
-          position={position}
-          quaternion={rotation}
-          scale={scale}
+          position={new THREE.Vector3(position.x, position.y, position.z)}
+          quaternion={new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w)}
+          scale={new THREE.Vector3(scale.x, scale.y, scale.z)}
           onClick={onClick}
         />
       ),

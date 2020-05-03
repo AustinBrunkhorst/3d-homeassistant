@@ -23,7 +23,7 @@ function* saveChanges() {
 
 export default function* areaEditorSaga() {
   yield takeLatest(actions.loadArea.request, loadArea);
-  yield takeLatest(actions.addModel, saveChanges);
+  yield takeLatest(actions.addObject, saveChanges);
   yield takeLatest(actions.updateObjectTransform, saveChanges);
   yield takeLatest(actions.deleteObject, saveChanges);
 }

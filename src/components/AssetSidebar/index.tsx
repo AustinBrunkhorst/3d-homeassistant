@@ -36,7 +36,7 @@ function AssetSidebar() {
     <RootContainer>
       <SearchInput onChange={setSearchQuery} value={searchQuery} />
       {tab === "models" 
-        ? <AssetList assets={filteredAssets} />
+        ? <AssetList models={filteredAssets} />
         : <ObjectList />
       }
       <BottomNavigation showLabels value={tab} onChange={handleChange} className={classes.root}>

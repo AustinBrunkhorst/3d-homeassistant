@@ -2,25 +2,25 @@ import { createEntityAdapter, EntityState } from "@reduxjs/toolkit";
 import produce from "immer";
 import undoable, { groupByActionTypes } from "redux-undo";
 import { ActionType, createReducer, getType, isActionOf } from "typesafe-actions";
-import { ModelObject } from "store/models/areaEditor.model";
+import { SceneObject } from "store/models/areaEditor.model";
 import * as actions from "../actions/areaEditor.actions";
-import { LightObject } from "../models/areaEditor.model";
 
 export type Actions = ActionType<typeof actions>;
 
 export interface AreaEditorState {
   areaId: string;
-  models: EntityState<ModelObject>;
-  lights: EntityState<LightObject>;
+  objects: EntityState<SceneObject>;
+  selectedObjects: number[];
 }
 
-const modelAdapter = createEntityAdapter<ModelObject>({});
-const lightAdapter = createEntityAdapter<LightObject>({});
+const objectAdapter = createEntityAdapter<SceneObject>({});
+
+export const selectors = objectAdapter.getSelectors();
 
 export const initialState: AreaEditorState = {
   areaId: "",
-  models: modelAdapter.getInitialState(),
-  lights: lightAdapter.getInitialState(),
+  objects: objectAdapter.getInitialState(),
+  selectedObjects: []
 };
 
 const reducer = createReducer(initialState)
@@ -29,61 +29,38 @@ const reducer = createReducer(initialState)
       draft.areaId = areaId;
     })
   )
-  .handleAction(actions.loadArea.success, (state, { payload: { models, lights } }) =>
+  .handleAction(actions.loadArea.success, (state, { payload }) =>
     produce(state, draft => {
-      draft.models = modelAdapter.addMany(state.models, models);
-      draft.lights = lightAdapter.addMany(state.lights, lights);
+      draft.objects = objectAdapter.addMany(state.objects, payload);
     })
   )
-  .handleAction(actions.addModel, (state, { payload: { id, asset, position, rotation, scale } }) =>
+  .handleAction(actions.addObject, (state, { payload }) =>
     produce(state, draft => {
-      // TODO: add clear selection option
-      for (const object of draft.models) {
-        object.selected = false;
-      }
-
-      draft.models.push({
-        id,
-        asset,
-        position,
-        rotation,
-        scale,
-        selected: true
-      });
+      draft.selectedObjects = [payload.id];
+      draft.objects = objectAdapter.addOne(state.objects, payload);
     })
   )
-  .handleAction(actions.selectObject, (state, { payload: { instanceId } }) =>
+  .handleAction(actions.selectObject, (state, { payload: { id, clearSelection } }) =>
     produce(state, draft => {
-      for (const object of draft.models) {
-        object.selected = object.id === instanceId;
-      }
+      draft.selectedObjects = [id];
     })
   )
   .handleAction(actions.deselectAllObjects, (state) =>
     produce(state, draft => {
-      for (const object of draft.models) {
-        object.selected = false;
-      }
+      draft.selectedObjects = [];
     })
   )
-  .handleAction(actions.updateObjectTransform, (state, { payload: { instanceId, position, rotation, scale } }) =>
+  .handleAction(actions.updateObjectTransform, (state, { payload: { id, transform } }) =>
     produce(state, draft => {
-      for (const object of draft.models) {
-        if (object.id !== instanceId) {
-          continue;
-        }
-
-        object.transform.position = { x: position.x, y: position.y, z: position.z };
-        object.transform.rotation = { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w };
-        object.transform.scale = { x: scale.x, y: scale.y, z: scale.z };
-
-        break;
-      }
+      draft.objects = objectAdapter.updateOne(
+        state.objects, 
+        { id, changes: { transform } }
+      );
     })
   )
-  .handleAction(actions.deleteObject, (state, { payload: instanceId }) =>
+  .handleAction(actions.deleteObject, (state, { payload }) =>
     produce(state, draft => {
-      draft.models = draft.models.filter(object => object.id !== instanceId);
+      draft.objects = objectAdapter.removeOne(state.objects, payload);
     })
   );
 
@@ -91,7 +68,7 @@ export default undoable(reducer, {
   undoType: getType(actions.undo),
   redoType: getType(actions.redo),
   filter: isActionOf([
-    actions.addModel,
+    actions.addObject,
     actions.selectObject,
     actions.updateObjectTransform,
     actions.deselectAllObjects,

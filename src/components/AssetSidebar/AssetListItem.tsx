@@ -5,15 +5,15 @@ import React from "react";
 import { DragSource, DragSourceConnector, DragSourceMonitor } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 import { AssetItemDragType } from "core/dragDrop/types";
-import { Model } from "store/models/areaEditor.model";
+import { Model, ModelObject } from "store/models/areaEditor.model";
 import { AssetThumbnail } from "./elements";
 
 export interface AssetListItemProps {
-  asset: Model;
+  model: Model;
 }
 
 function AssetListItem({
-  asset: { title, thumbnail },
+  model: { title, thumbnail },
   connectDragSource,
   connectDragPreview
 }) {
@@ -32,7 +32,9 @@ function AssetListItem({
 export default DragSource(
   AssetItemDragType,
   {
-    beginDrag: ({ asset }: AssetListItemProps) => ({ asset })
+    beginDrag: ({ model }: AssetListItemProps) => ({
+      object: { type: 'model', model } as Partial<ModelObject>
+    })
   },
   (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
     connectDragSource: connect.dragSource(),

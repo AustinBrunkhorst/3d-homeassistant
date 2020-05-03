@@ -11,7 +11,7 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
-function AssetList({ assets }) {
+function AssetList({ models }) {
   const ref = useRef(null);
   const { width, height } = useSize(ref);
 
@@ -20,14 +20,14 @@ function AssetList({ assets }) {
       <VirtualList
         width={width || 0}
         height={height || 0}
-        itemCount={assets.length}
+        itemCount={models.length}
         itemSize={itemHeight}
         renderItem={({ index, style }) => {
-          const asset = assets[index];
+          const model = models[index];
 
           return (
-            <div style={style} key={asset.title}>
-              <AssetListItem key={asset.title} asset={asset} />
+            <div style={style} key={models.title}>
+              <AssetListItem key={models.title} model={model} />
             </div>
           );
         }}

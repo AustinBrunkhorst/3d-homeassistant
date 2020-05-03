@@ -11,7 +11,7 @@ interface Quaternion {
   w: number;
 }
 
-interface Transform {
+export interface Transform {
   position: Vector3;
   rotation: Quaternion;
   scale: Vector3;
@@ -24,20 +24,25 @@ export interface Model {
   model: string;
 }
 
-export interface SceneObject {
+type SceneObjectType = 'model' | 'light';
+export type SceneObject = ModelObject | LightObject;
+
+interface BaseSceneObject {
   id: number;
+  type: SceneObjectType;
+  transform: Transform;
 }
 
-export interface ModelObject extends SceneObject {
+export interface ModelObject extends BaseSceneObject {
+  type: 'model';
   model: Model;
-  transform: Transform;
-  selected: boolean;
 }
 
 type LightType = 'point' | 'spot';
 
-export interface LightObject extends SceneObject  {
+export interface LightObject extends BaseSceneObject  {
+  type: 'light';
   entityId: string;
-  type: LightType;
+  lightType: LightType;
   intensity: number;
 }
