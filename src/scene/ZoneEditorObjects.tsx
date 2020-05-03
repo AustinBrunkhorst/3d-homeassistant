@@ -1,13 +1,76 @@
+import { HassEntity } from "home-assistant-js-websocket";
 import React, { memo, useMemo, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useDispatch, useSelector } from "react-redux";
-import { useRender } from "react-three-fiber";
-import { FrontSide, Math as ThreeMath, Mesh, Quaternion, Scene, Vector3 } from "three";
+import { useRender, useResource } from "react-three-fiber";
+import {
+    Color, FrontSide, Math as ThreeMath, Mesh, PointLight, PointLightHelper, Quaternion, Scene,
+    Vector3,
+} from "three";
 import { useDebouncedCallback } from "use-debounce";
 import * as actions from "store/actions";
 import { selectSelectedObjectIds } from "store/selectors/areaEditor.selector";
+import { selectEntityById } from "store/selectors/hass.selector";
 import AssetModel from "./AssetModel";
 import ThreeTransformControls from "./TransformControls";
+
+function getColorFromState(light?: HassEntity) {
+  if (!light || light.state !== "on" || !light.attributes.rgb_color) {
+    return new Color();
+  }
+
+  return new Color(...light.attributes.rgb_color.map(c => c / 255));
+}
+
+function getBrightnessFromState(light?: HassEntity) {
+  if (!light || light.state !== "on") {
+    return 0;
+  }
+
+  return light.attributes.brightness / 255;
+}
+
+function Light({ id, entityId, selected, position }) {
+  const dispatch = useDispatch();
+  const lightEntity = useSelector(selectEntityById(entityId));
+  const [ref, object] = useResource<PointLight>();
+  
+  const light = useMemo(() => {
+    const color = getColorFromState(lightEntity);
+    const brightness = getBrightnessFromState(lightEntity);
+
+    return (
+      <pointLight
+        ref={ref}
+        position={new Vector3(position.x, position.y, position.z)}
+        color={color}
+        intensity={brightness}
+        distance={10}
+      />
+    );
+  }, [lightEntity, position.x, position.y, position.z, ref]);
+
+  const [saveState] = useDebouncedCallback((e) => {
+    dispatch(actions.updateObjectTransform({
+      id: id,
+      transform: {
+        position: { x: e.target.object.position.x, y: e.target.object.position.y, z: e.target.object.position.z },
+        rotation: { x: e.target.object.quaternion.x, y: e.target.object.quaternion.y, z: e.target.object.quaternion.z, w: e.target.object.quaternion.w },
+        scale: { x: e.target.object.scale.x, y: e.target.object.scale.y, z: e.target.object.scale.z },
+      }
+    }));
+  }, 50);
+
+  return <>
+    {light}
+    {object && selected && (
+      <>
+        <pointLightHelper args={[object]} />
+        <ThreeTransformControls object={object} onChange={saveState} />
+      </>
+    )}
+  </>;
+}
 
 function ZoneEditorObjects({ droppedAssets, dragState }) {
   const [, setState] = useState(dragState);
@@ -17,9 +80,23 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
     setState(dragState.current);
   });
 
-  const objects = useMemo(
+  const lights = useMemo(
     () =>
-      droppedAssets.map(({ id, model, transform: { position, rotation, scale } }) => (
+      droppedAssets.filter(({ type }) => type === 'light').map(({ id, entityId, transform: { position } }) => (
+        <Light
+          id={id}
+          entityId={entityId}
+          key={id}
+          position={position}
+          selected={selectedObjects.includes(id)}
+        />
+      )),
+    [droppedAssets, selectedObjects]
+  );
+
+  const models = useMemo(
+    () =>
+      droppedAssets.filter(({ type }) => type === 'model').map(({ id, model, transform: { position, rotation, scale } }) => (
         <SelectableAssetModel
           key={id}
           id={id}
@@ -36,7 +113,8 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
   return (
     <>
       <Ground />
-      {objects}
+      {models}
+      {lights}
       {dragState.current && (
         <AssetModel
           model={dragState.current.object.model}

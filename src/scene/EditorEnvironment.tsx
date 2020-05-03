@@ -5,7 +5,7 @@ import Skybox from "./Skybox";
 
 const Lights = ({ sunPosition }) => (
   <>
-    <ambientLight color={new THREE.Color("white")} intensity={0.5} />
+    <ambientLight color={new THREE.Color("white")} intensity={0.1} />
     {/* <PointLight
       color="red"
       position={[0, 2, 0]}

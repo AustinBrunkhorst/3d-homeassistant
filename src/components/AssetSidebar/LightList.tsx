@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { useSize } from "react-hook-size";
 import VirtualList from "react-tiny-virtual-list";
 import styled from "styled-components";
-import AssetListItem from "./AssetListItem";
+import LightListItem from "./LightListItem";
 
 const itemHeight = 62;
 
@@ -11,7 +11,7 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
-function AssetList({ models }) {
+function LightList({ lights }) {
   const ref = useRef(null);
   const { width, height } = useSize(ref);
 
@@ -20,14 +20,14 @@ function AssetList({ models }) {
       <VirtualList
         width={width || 0}
         height={height || 0}
-        itemCount={models.length}
+        itemCount={lights.length}
         itemSize={itemHeight}
         renderItem={({ index, style }) => {
-          const model = models[index];
+          const light = lights[index];
 
           return (
-            <div style={style} key={model.title}>
-              <AssetListItem model={model} />
+            <div style={style} key={light.entity_id}>
+              <LightListItem light={light} />
             </div>
           );
         }}
@@ -36,4 +36,4 @@ function AssetList({ models }) {
   );
 }
 
-export default AssetList;
+export default LightList;
