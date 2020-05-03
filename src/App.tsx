@@ -4,8 +4,8 @@ import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import AreaIndexPage from "pages/area";
 import AreaEditPage from "pages/area/edit";
-import * as hass from "store/hass.actions";
-import { selectLoggedIn } from "store/hass.selector";
+import * as hass from "store/actions/hass.actions";
+import { selectLoggedIn } from "store/selectors/hass.selector";
 
 function App() {
   const dispatch = useDispatch();

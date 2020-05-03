@@ -1,9 +1,6 @@
-import {
-  Box3, Cache, Object3D, Group, Vector3
-} from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-
-import { AssetMetadata } from 'store/asset.models';
+import { Box3, Cache, Group, Object3D, Vector3 } from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { Model } from "store/models/areaEditor.model";
 
 Cache.enabled = true;
 
@@ -57,6 +54,6 @@ function fetchModel(path: string): Promise<Object3D> {
   });
 }
 
-export async function loadModelAsset({ model }: AssetMetadata) {
+export async function loadModelAsset({ model }: Model) {
   return await fetchModel(model);
 }

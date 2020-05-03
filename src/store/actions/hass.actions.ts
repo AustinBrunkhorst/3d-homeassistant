@@ -1,6 +1,6 @@
 import { Auth, HassEntity } from "home-assistant-js-websocket";
 import { createAsyncAction, createStandardAction } from "typesafe-actions";
-import { AreaConfiguration } from "./hass.model";
+import { AreaConfiguration } from "../models/hass.model";
 
 export const loginAsync = createAsyncAction(
   'HASS_LOGIN',

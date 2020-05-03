@@ -5,8 +5,8 @@ import React from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink, LinkProps as RouterLinkProps } from "react-router-dom";
 import styled from "styled-components";
-import * as hass from "store/hass.actions";
-import { selectAreas } from "store/hass.selector";
+import * as hass from "store/actions/hass.actions";
+import { selectAreas } from "store/selectors/hass.selector";
 
 interface ListItemLinkProps {
   primary: string;

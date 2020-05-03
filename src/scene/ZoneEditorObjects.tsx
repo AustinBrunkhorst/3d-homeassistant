@@ -1,11 +1,12 @@
-import React, { memo, useMemo, useState } from 'react';
-import { useRender } from 'react-three-fiber';
-import { FrontSide, Math as ThreeMath, Mesh, Scene } from 'three';
-
-import * as actions from 'store/zoneEditor.actions';
-import AssetModel from './AssetModel';
-import useZoneEditorState from './hooks/ZoneEditorState';
-import ThreeTransformControls from './TransformControls';
+import React, { memo, useCallback, useMemo, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
+import { useDispatch } from "react-redux";
+import { useRender } from "react-three-fiber";
+import { FrontSide, Math as ThreeMath, Mesh, Quaternion, Scene, Vector3 } from "three";
+import { useDebouncedCallback } from "use-debounce";
+import * as actions from "store/actions";
+import AssetModel from "./AssetModel";
+import ThreeTransformControls from "./TransformControls";
 
 function ZoneEditorObjects({ droppedAssets, dragState }) {
   const [, setState] = useState(dragState);
@@ -16,12 +17,14 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
 
   const objects = useMemo(
     () =>
-      droppedAssets.map(({ id, asset, position, selected }) => (
+      droppedAssets.map(({ id, asset, position, rotation, scale, selected }) => (
         <SelectableAssetModel
           key={id}
           id={id}
           asset={asset}
           position={position}
+          rotation={rotation}
+          scale={scale}
           selected={selected}
         />
       )),
@@ -36,6 +39,8 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
         <AssetModel
           asset={dragState.current.asset}
           position={dragState.current.position}
+          rotation={new Quaternion()}
+          scale={new Vector3(1, 1, 1)}
         />
       )}
     </>
@@ -58,11 +63,25 @@ const Ground = memo(() => (
   </mesh>
 ));
 
-const SelectableAssetModel = ({ id, asset, position, selected }: any) => {
+const SelectableAssetModel = ({ id, asset, position, rotation, scale, selected }: any) => {
   const [object, setObject] = useState();
-  const [, dispatch] = useZoneEditorState();
+  const dispatch = useDispatch();
+  const [saveState] = useDebouncedCallback((e) => {
+    dispatch(actions.updateObjectTransform({
+      instanceId: id,
+      position: e.target.object.position,
+      rotation: e.target.object.quaternion,
+      scale: e.target.object.scale,
+    }));
+  }, 50);
 
-  const selectAsset = () => dispatch(actions.selectAsset({ instanceId: id }));
+  const selectAsset = () => dispatch(actions.selectObject({ instanceId: id }));
+
+  useHotkeys("delete", () => {
+    if (selected) {
+      dispatch(actions.deleteObject(id));
+    }
+  }, [id, dispatch, selected]);
 
   return (
     <>
@@ -71,9 +90,11 @@ const SelectableAssetModel = ({ id, asset, position, selected }: any) => {
         key={id}
         asset={asset}
         position={position}
+        rotation={rotation}
+        scale={scale}
         onClick={selectAsset}
       />
-      {object && selected && <ThreeTransformControls object={object} />}
+      {object && selected && <ThreeTransformControls object={object} onChange={saveState} />}
     </>
   );
 };

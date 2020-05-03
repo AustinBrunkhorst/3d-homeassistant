@@ -1,8 +1,8 @@
 import { AuthData, HassEntity } from "home-assistant-js-websocket";
 import produce from "immer";
 import { ActionType, createReducer } from "typesafe-actions";
-import * as actions from "./hass.actions";
-import { Area } from "./hass.model";
+import * as actions from "../actions/hass.actions";
+import { Area } from "../models/hass.model";
 
 export type Actions = ActionType<typeof actions>;
 

@@ -1,32 +1,31 @@
 import throttle from "raf-schd";
 import { useCallback, useRef } from "react";
 import { DragObjectWithType, DropTargetMonitor, useDrop } from "react-dnd";
+import { useDispatch } from "react-redux";
 import { CanvasContext } from "react-three-fiber";
-import { Mesh, Vector2, Vector3 } from "three";
+import { Mesh, Quaternion, Vector2, Vector3 } from "three";
 import { AssetItemDragType } from "core/dragDrop/types";
-import { AssetMetadata } from "store/asset.models";
-import * as actions from "store/zoneEditor.actions";
+import * as actions from "store/actions";
+import { Model } from "store/models/areaEditor.model";
 import { snap } from "util/Vector";
 import { getGroundObject } from "../ZoneEditorObjects";
 
 interface AssetDragItem extends DragObjectWithType {
-  asset: AssetMetadata;
+  asset: Model;
 }
 
 interface DragState {
-  asset: AssetMetadata;
+  asset: Model;
   position: Vector3;
 }
 
 const dropSnapSize = 0.05;
 
-export default function useZoneEditorDropTarget(dispatch: Function) {
+export default function useAreaEditorDropTarget(generateId: () => number) {
+  const dispatch = useDispatch();
   const viewport = useRef<DOMRect>();
   const context = useRef<any>();
-  const nextId = useRef(0);
-
   const ground = useRef<Mesh>();
-
   const dragState = useRef<DragState>();
 
   function screenToDropPosition({ x, y }) {
@@ -96,6 +95,8 @@ export default function useZoneEditorDropTarget(dispatch: Function) {
       }
 
       const position = screenToDropPosition(input);
+      const rotation = new Quaternion();
+      const scale = new Vector3(1, 1, 1);
 
       if (position === null) {
         return;
@@ -103,13 +104,15 @@ export default function useZoneEditorDropTarget(dispatch: Function) {
 
       dragState.current = undefined;
 
-      const id = nextId.current++;
+      const id = generateId();
 
       dispatch(
-        actions.dropAsset({
+        actions.addModel({
           id,
           asset,
-          position
+          position,
+          rotation,
+          scale,
         })
       );
     }

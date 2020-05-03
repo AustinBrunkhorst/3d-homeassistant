@@ -1,17 +1,15 @@
-import { AssetItemDragType } from 'core/dragDrop/types';
-import React from 'react';
-import { DragSource, DragSourceConnector, DragSourceMonitor } from 'react-dnd';
-import { getEmptyImage } from 'react-dnd-html5-backend';
-import { AssetMetadata } from 'store/asset.models';
-
-import Box from '@material-ui/core/Box';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-
-import { AssetThumbnail } from './elements';
+import Box from "@material-ui/core/Box";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import React from "react";
+import { DragSource, DragSourceConnector, DragSourceMonitor } from "react-dnd";
+import { getEmptyImage } from "react-dnd-html5-backend";
+import { AssetItemDragType } from "core/dragDrop/types";
+import { Model } from "store/models/areaEditor.model";
+import { AssetThumbnail } from "./elements";
 
 export interface AssetListItemProps {
-  asset: AssetMetadata;
+  asset: Model;
 }
 
 function AssetListItem({
@@ -22,14 +20,12 @@ function AssetListItem({
   connectDragPreview(getEmptyImage());
 
   return (
-    <>
-      <ListItem key={title} ref={connectDragSource}>
-        <Box mr={2}>
-          <AssetThumbnail src={thumbnail} />
-        </Box>
-        <ListItemText primary={title} />
-      </ListItem>
-    </>
+    <ListItem key={title} ref={connectDragSource}>
+      <Box mr={2}>
+        <AssetThumbnail src={thumbnail} />
+      </Box>
+      <ListItemText primary={title} />
+    </ListItem>
   );
 }
 

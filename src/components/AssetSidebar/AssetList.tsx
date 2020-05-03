@@ -1,8 +1,7 @@
 import React, { useRef } from "react";
-import styled from "styled-components";
-import VirtualList from "react-tiny-virtual-list";
 import { useSize } from "react-hook-size";
-
+import VirtualList from "react-tiny-virtual-list";
+import styled from "styled-components";
 import AssetListItem from "./AssetListItem";
 
 const itemHeight = 62;

@@ -1,12 +1,11 @@
-import React, { useEffect } from 'react';
-import { useThree, useUpdate } from 'react-three-fiber';
-import { Math as ThreeMath } from 'three';
+import useEventListener from "@use-it/event-listener";
+import React, { KeyboardEvent, useEffect } from "react";
+import { useThree, useUpdate } from "react-three-fiber";
+import { Math as ThreeMath } from "three";
+import ThreeTransformControls from "lib/three/TransformControls";
+import { getCameraMapControls } from "./MapControlsCamera";
 
-import { useEventListener } from 'core/hooks/EventListener';
-import { getCameraMapControls } from './MapControlsCamera';
-import ThreeTransformControls from 'lib/three/TransformControls';
-
-function TransformControls({ object }) {
+function TransformControls({ object, onChange }) {
   const { camera, canvas } = useThree();
 
   const ref = useUpdate<ThreeTransformControls>(
@@ -32,17 +31,19 @@ function TransformControls({ object }) {
     const transformControls = ref.current;
 
     if (transformControls) {
-      transformControls.addEventListener('dragging-changed', onDrag);
+      transformControls.addEventListener("dragging-changed", onDrag);
+      transformControls.addEventListener("objectChange", onChange);
     }
 
     return () => {
       if (transformControls) {
         transformControls.removeEventListener('dragging-changed', onDrag);
+        transformControls.removeEventListener("objectChange", onChange);
       }
     }
-  }, [ref, camera, object]);
+  }, [ref, camera, object, onChange]);
 
-  useEventListener(window, "keydown", event => {
+  useEventListener<KeyboardEvent>("keydown", event => {
     const controls = ref.current;
 
     if (!controls) {

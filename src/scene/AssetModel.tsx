@@ -1,17 +1,18 @@
-import React, { forwardRef, useEffect, useMemo, useState } from 'react';
-import * as THREE from 'three';
-
-import { loadModelAsset } from 'core/resourceManager';
-import { AssetMetadata } from 'store/asset.models';
+import React, { forwardRef, useEffect, useMemo, useState } from "react";
+import * as THREE from "three";
+import { loadModelAsset } from "core/resourceManager";
+import { Model } from "store/models/areaEditor.model";
 
 export interface ModelAssetProps {
-  asset: AssetMetadata;
+  asset: Model;
   position: THREE.Vector3;
+  rotation: THREE.Quaternion;
+  scale: THREE.Vector3;
   onClick?: () => void;
 }
 
 const ModelAsset = forwardRef(
-  ({ asset, position, onClick }: ModelAssetProps, ref) => {
+  ({ asset, position, rotation, scale, onClick }: ModelAssetProps, ref) => {
     const [model, setModel] = useState<THREE.Object3D>();
 
     useEffect(() => {
@@ -40,10 +41,12 @@ const ModelAsset = forwardRef(
           ref={ref}
           object={model}
           position={position}
+          quaternion={rotation}
+          scale={scale}
           onClick={onClick}
         />
       ),
-      [ref, model, position, onClick]
+      [ref, model, position, rotation, scale, onClick]
     );
 
     const loadingObject = useMemo(
@@ -53,7 +56,7 @@ const ModelAsset = forwardRef(
           <meshStandardMaterial
             attach="material"
             color="red"
-            emissive="red"
+            emissive={new THREE.Color("red")}
             emissiveIntensity={10}
           />
         </mesh>

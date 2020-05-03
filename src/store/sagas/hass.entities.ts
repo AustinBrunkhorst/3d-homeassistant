@@ -1,7 +1,7 @@
 import { Connection, getStates, StateChangedEvent } from "home-assistant-js-websocket";
 import { eventChannel } from "redux-saga";
 import { call, put, takeEvery } from "redux-saga/effects";
-import * as actions from "../hass.actions";
+import * as actions from "../actions/hass.actions";
 
 export function *loadEntities(connection: Connection) {
   try {

@@ -4,7 +4,7 @@ import { createBrowserHistory } from "history";
 import { applyMiddleware, createStore } from "redux";
 import { composeWithDevTools } from "redux-devtools-extension";
 import { isProd } from "../environment";
-import createRootReducer from "./root.reducer";
+import createRootReducer from "./reducers";
 import getSagas from "./sagas";
 
 export const history = createBrowserHistory();
@@ -28,8 +28,8 @@ export default function configureStore(initialState = {}) {
   });
 
   if (!isProd && module.hot) {
-    module.hot.accept('./root.reducer', () => {
-      const nextRootReducer = require('./root.reducer');
+    module.hot.accept('./reducers/index', () => {
+      const nextRootReducer = require('./reducers/index');
       store.replaceReducer(nextRootReducer(history));
     });
 

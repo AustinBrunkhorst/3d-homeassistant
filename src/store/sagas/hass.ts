@@ -2,7 +2,7 @@ import { getSearch, replace } from "connected-react-router";
 import { Auth, AuthData, createConnection, getAuth } from "home-assistant-js-websocket";
 import { call, fork, put, select, takeLatest } from "redux-saga/effects";
 import { getType } from "typesafe-actions";
-import * as actions from "store/hass.actions";
+import * as actions from "store/actions/hass.actions";
 import { loadAreas } from "./hass.areas";
 import { loadEntities, updateEntityStates } from "./hass.entities";
 

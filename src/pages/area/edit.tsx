@@ -5,13 +5,17 @@ import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import AssetSidebar from "components/AssetSidebar";
-import ZoneEditorScene from "scene/ZoneEditorScene";
-import * as hass from "store/hass.actions";
-import { selectAreas } from "store/hass.selector";
+import AreaEditorScene from "scene/AreaEditorScene";
+import * as hass from "store/actions/hass.actions";
+import { selectAreas } from "store/selectors/hass.selector";
 
 const PageContainer = styled(Box)`
   height: 100%;
   overflow: hidden;
+`;
+
+const SceneContainer = styled(Box).attrs({ flexGrow: 1 })`
+  height: 100%;
 `;
 
 function AreaEditPage() {
@@ -34,9 +38,9 @@ function AreaEditPage() {
   return (
     <PageContainer display="flex" flexDirection="row">
       <AssetSidebar />
-      <Box flexGrow={1} style={{ height: "100%" }}>
-        <ZoneEditorScene />
-      </Box>
+      <SceneContainer>
+        <AreaEditorScene area={area} />
+      </SceneContainer>
     </PageContainer>
   );
 }

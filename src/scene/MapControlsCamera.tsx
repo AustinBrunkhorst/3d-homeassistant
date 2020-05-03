@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useResource, useThree } from 'react-three-fiber';
-import { Camera } from 'three';
-import { MapControls } from 'three/examples/jsm/controls/MapControls';
-
-import { useLocalStorageRef } from 'core/hooks/LocalStorage';
+import React, { useEffect, useState } from "react";
+import { useResource, useThree } from "react-three-fiber";
+import { Camera, PerspectiveCamera } from "three";
+import { MapControls } from "three/examples/jsm/controls/MapControls";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { useLocalStorageRef } from "core/hooks/LocalStorage";
 
 export interface MapControlsCameraProps {
   name: string;
@@ -13,7 +13,7 @@ export function getCameraMapControls(camera: Camera) {
   return camera && camera.userData && camera.userData.controls;
 }
 
-function storeCameraMapControls(camera: Camera, controls) {
+function storeCameraMapControls(camera: Camera, controls: OrbitControls) {
   if (camera) {
     camera.userData.controls = controls;
   }
@@ -22,7 +22,7 @@ function storeCameraMapControls(camera: Camera, controls) {
 export default function MapControlsCamera({ name }: MapControlsCameraProps) {
   const { size, setDefaultCamera, canvas } = useThree();
 
-  const [ref, camera] = useResource();
+  const [ref, camera] = useResource<PerspectiveCamera>();
   const [controls] = usePersistedMapControls(name);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function MapControlsCamera({ name }: MapControlsCameraProps) {
         far={2000000}
         fov={60}
         position={[10, 10, 5]}
-        onUpdate={(self: THREE.PerspectiveCamera) => {
+        onUpdate={(self: PerspectiveCamera) => {
           self.updateProjectionMatrix();
         }}
       />

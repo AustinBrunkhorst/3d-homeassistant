@@ -1,7 +1,7 @@
 import { Connection } from "home-assistant-js-websocket";
 import { call, put } from "redux-saga/effects";
-import { AreaConfiguration } from "store/hass.model";
-import * as actions from "../hass.actions";
+import { AreaConfiguration } from "store/models/hass.model";
+import * as actions from "../actions/hass.actions";
 
 export function *loadAreas(connection: Connection) {
   try {

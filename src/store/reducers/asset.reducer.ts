@@ -1,7 +1,6 @@
-import * as THREE from 'three';
-import { createReducer } from 'typesafe-actions';
-
-import { AssetMetadata } from './asset.models';
+import * as THREE from "three";
+import { createReducer } from "typesafe-actions";
+import { Model } from "../models/areaEditor.model";
 
 const modelAssets = [
   "campfire_large.gltf",
@@ -378,7 +377,7 @@ const modelAssets = [
   "cactus_tall.gltf"
 ];
 
-const initialState: AssetMetadata[] = modelAssets.sort().map(path => {
+const initialState: Model[] = modelAssets.sort().map(path => {
   const [basename] = path.split(".");
 
   return {
