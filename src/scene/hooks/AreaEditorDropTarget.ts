@@ -121,11 +121,12 @@ export default function useAreaEditorDropTarget(generateId: () => number) {
   });
 
   const setContext = useCallback((instance: CanvasContext) => {
+    console.log('set context', instance);
     context.current = instance;
 
-    const { canvas, scene } = context.current;
+    const { gl, scene } = context.current;
 
-    if (!canvas || !scene) {
+    if (!gl || !gl.domElement || !scene) {
       return;
     }
 
@@ -134,9 +135,9 @@ export default function useAreaEditorDropTarget(generateId: () => number) {
 
     // TODO: fix this
     setTimeout(() => {
-      viewport.current = canvas.getBoundingClientRect();
+      viewport.current = gl.domElement.getBoundingClientRect();
 
-      connectDropTarget(canvas);
+      connectDropTarget(gl.domElement);
     });
   }, [connectDropTarget]);
 

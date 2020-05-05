@@ -50,6 +50,7 @@ export default function AreaEditorScene({ area }: AreaEditorSceneProps) {
     context.gl.shadowMap.enabled = true;
     context.gl.shadowMap.type = PCFSoftShadowMap;
 
+    console.log('context', context);
     setDropTargetContext(context);
   }, [setDropTargetContext]);
 
@@ -88,7 +89,7 @@ export default function AreaEditorScene({ area }: AreaEditorSceneProps) {
 
   return (
     <Container>
-      <Canvas onCreated={setContext} shadowMap={true}>
+      <Canvas concurrent onCreated={setContext} shadowMap={true}>
         <Provider store={reduxContext.store}>
           <Scene area={area} objects={objects} dragState={dragState} />
         </Provider>
