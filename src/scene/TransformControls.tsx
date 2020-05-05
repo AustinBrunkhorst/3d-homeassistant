@@ -1,14 +1,16 @@
 import useEventListener from "@use-it/event-listener";
+import { TransformControls as ThreeTransformControls } from "drei";
 import React, { KeyboardEvent, useEffect } from "react";
 import { useThree, useUpdate } from "react-three-fiber";
-import { Math as ThreeMath } from "three";
-import ThreeTransformControls from "lib/three/TransformControls";
+import { MathUtils as ThreeMath } from "three";
 import { getCameraMapControls } from "./MapControlsCamera";
 
-function TransformControls({ object, onChange }) {
-  const { camera, canvas } = useThree();
+const TestThreeControls: any = ThreeTransformControls;
 
-  const ref = useUpdate<ThreeTransformControls>(
+function TransformControls({ object, onChange }) {
+  const { camera } = useThree();
+
+  const ref = useUpdate<any>(
     controls => {
       if (object) {
         controls.attach(object);
@@ -89,7 +91,7 @@ function TransformControls({ object, onChange }) {
     }
   });
 
-  return <transformControls ref={ref} args={[camera, canvas]} />;
+  return <TestThreeControls ref={ref} />;
 }
 
 export default TransformControls;

@@ -1,11 +1,9 @@
 import { HassEntity } from "home-assistant-js-websocket";
 import React, { memo, useMemo, useState } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
 import { useDispatch, useSelector } from "react-redux";
-import { useRender, useResource } from "react-three-fiber";
+import { useFrame, useResource } from "react-three-fiber";
 import {
-    Color, FrontSide, Math as ThreeMath, Mesh, PointLight, PointLightHelper, Quaternion, Scene,
-    Vector3,
+    Color, FrontSide, MathUtils as ThreeMath, Mesh, PointLight, Quaternion, Scene, Vector3,
 } from "three";
 import { useDebouncedCallback } from "use-debounce";
 import * as actions from "store/actions";
@@ -76,7 +74,7 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
   const [, setState] = useState(dragState);
   const selectedObjects = useSelector(selectSelectedObjectIds);
 
-  useRender(() => {
+  useFrame(() => {
     setState(dragState.current);
   });
 
@@ -137,6 +135,8 @@ const Ground = memo(() => (
   <mesh
     name={groundObjectName}
     rotation={[-ThreeMath.degToRad(90), 0, ThreeMath.degToRad(90)]}
+    castShadow
+    receiveShadow
   >
     <planeGeometry attach="geometry" args={[2, 2]} />
     <meshBasicMaterial attach="material" color="#6cdcd1" side={FrontSide} />
@@ -158,12 +158,6 @@ const SelectableAssetModel = ({ id, model, position, rotation, scale, selected }
   }, 50);
 
   const selectAsset = () => dispatch(actions.selectObject({ id: id }));
-
-  useHotkeys("delete", () => {
-    if (selected) {
-      dispatch(actions.deleteObject(id));
-    }
-  }, [id, dispatch, selected]);
 
   return (
     <>

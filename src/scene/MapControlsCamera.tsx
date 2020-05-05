@@ -1,26 +1,27 @@
+import { OrbitControls } from "drei";
 import React, { useEffect, useState } from "react";
 import { useResource, useThree } from "react-three-fiber";
 import { Camera, PerspectiveCamera } from "three";
-import { MapControls } from "three/examples/jsm/controls/MapControls";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { useLocalStorageRef } from "core/hooks/LocalStorage";
 
 export interface MapControlsCameraProps {
   name: string;
 }
 
+const TestOrbit: any = OrbitControls;
+
 export function getCameraMapControls(camera: Camera) {
   return camera && camera.userData && camera.userData.controls;
 }
 
-function storeCameraMapControls(camera: Camera, controls: OrbitControls) {
+function storeCameraMapControls(camera: Camera, controls: any) {
   if (camera) {
     camera.userData.controls = controls;
   }
 }
 
 export default function MapControlsCamera({ name }: MapControlsCameraProps) {
-  const { size, setDefaultCamera, canvas } = useThree();
+  const { size, setDefaultCamera } = useThree();
 
   const [ref, camera] = useResource<PerspectiveCamera>();
   const [controls] = usePersistedMapControls(name);
@@ -44,10 +45,8 @@ export default function MapControlsCamera({ name }: MapControlsCameraProps) {
           self.updateProjectionMatrix();
         }}
       />
-      {camera && canvas && (
-        <orbitControls
+        <TestOrbit
           ref={controls}
-          args={[camera, canvas]}
           enableDamping={false}
           screenSpacePanning={false}
           maxPolarAngle={Math.PI / 2}
@@ -61,7 +60,7 @@ export default function MapControlsCamera({ name }: MapControlsCameraProps) {
 }
 
 function usePersistedMapControls(name: string) {
-  const [controls, setControls] = useState<MapControls>();
+  const [controls, setControls] = useState<any>();
   const [serializedState, persistState] = useLocalStorageRef(name, null, 200);
 
   useEffect(() => {

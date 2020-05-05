@@ -31,6 +31,7 @@ const reducer = createReducer(initialState)
   )
   .handleAction(actions.loadArea.success, (state, { payload }) =>
     produce(state, draft => {
+      draft.objects = objectAdapter.removeAll(state.objects);
       draft.objects = objectAdapter.addMany(state.objects, payload);
     })
   )

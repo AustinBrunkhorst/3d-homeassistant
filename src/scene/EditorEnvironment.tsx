@@ -14,7 +14,7 @@ const Lights = ({ sunPosition }) => (
       
       
     /> */}
-    <directionalLight position={sunPosition.current.clone()} />
+    <directionalLight position={sunPosition.current.clone()} castShadow />
   </>
 );
 
@@ -33,7 +33,7 @@ export default function EditorEnvironment() {
   const sunPosition = useRef(new THREE.Vector3());
 
   useAnimationFrame(() => {
-    const normalized = THREE.Math.mapLinear(
+    const normalized = THREE.MathUtils.mapLinear(
       (Math.cos(Date.now() / 50000) + 1) * 0.5,
       0,
       1,

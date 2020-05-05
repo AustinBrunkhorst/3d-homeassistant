@@ -381,7 +381,7 @@ const initialState: Model[] = modelAssets.sort().map(path => {
   const [basename] = path.split(".");
 
   return {
-    guid: THREE.Math.generateUUID(),
+    guid: THREE.MathUtils.generateUUID(),
     title: basename
       .replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
       .replace(/([A-Z])/g, match => ` ${match}`)

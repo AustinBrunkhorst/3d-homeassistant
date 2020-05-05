@@ -40,6 +40,11 @@ function fetchModel(path: string): Promise<Object3D> {
 
         rootGroup.position.sub(center);
 
+        scene.traverse(object => {
+          object.castShadow = true;
+          object.receiveShadow = true;
+        });
+
         resolve(group);
       },
       function onModelProgress(e) {

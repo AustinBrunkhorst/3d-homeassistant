@@ -1,8 +1,10 @@
-import React, { memo, useCallback, useContext, useEffect, useRef } from "react";
+import { StandardEffects } from "drei";
+import React, { memo, Suspense, useCallback, useContext, useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Provider, ReactReduxContext, useDispatch, useSelector } from "react-redux";
 import { Canvas } from "react-three-fiber";
 import styled from "styled-components";
+import { PCFSoftShadowMap } from "three";
 import "scene/extensions";
 import * as actions from "store/actions/areaEditor.actions";
 import { Area } from "store/models/hass.model";
@@ -42,7 +44,14 @@ export default function AreaEditorScene({ area }: AreaEditorSceneProps) {
     }
   }, [objects]);
 
-  const { dragState, setContext, context } = useAreaEditorDropTarget(generateId);
+  const { dragState, setContext: setDropTargetContext, context } = useAreaEditorDropTarget(generateId);
+
+  const setContext = useCallback((context) => {
+    context.gl.shadowMap.enabled = true;
+    context.gl.shadowMap.type = PCFSoftShadowMap;
+
+    setDropTargetContext(context);
+  }, [setDropTargetContext]);
 
   useEffect(() => {
     dispatch(actions.loadArea.request(area.area_id));
@@ -71,9 +80,15 @@ export default function AreaEditorScene({ area }: AreaEditorSceneProps) {
     }));
   }, [selectedObjects]);
 
+  useHotkeys("delete", () => {
+    for (const { id } of selectedObjects) {
+      dispatch(actions.deleteObject(id));
+    }
+  }, [dispatch, selectedObjects]);
+
   return (
     <Container>
-      <Canvas onCreated={setContext}>
+      <Canvas onCreated={setContext} shadowMap={true}>
         <Provider store={reduxContext.store}>
           <Scene area={area} objects={objects} dragState={dragState} />
         </Provider>
@@ -96,5 +111,14 @@ const Scene = memo(({ area, objects, dragState }: SceneProps) => (
     <ZoneEditorObjects droppedAssets={objects} dragState={dragState} />
     <MapControlsCamera name={`camera.${area.area_id}`} />
     <EditorEnvironment />
+    <Suspense fallback={null}>
+      <StandardEffects
+        smaa                      // Can be a boolean (default=true)
+        ao                        // Can be a boolean or all valid postprocessing AO props (default=true)
+        bloom                     // Can be a boolean or all valid postprocessing Bloom props (default=true)
+        edgeDetection={0.1}       // SMAA precision (default=0.1)
+        bloomOpacity={1}          // Bloom blendMode opacity (default=1)
+      />
+    </Suspense>
   </>
 ));
