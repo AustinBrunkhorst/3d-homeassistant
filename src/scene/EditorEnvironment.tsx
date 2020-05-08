@@ -14,7 +14,7 @@ const Lights = ({ sunPosition }) => (
       
       
     /> */}
-    <directionalLight position={sunPosition.current.clone()} castShadow />
+    {/* <directionalLight position={sunPosition.current.clone()} castShadow /> */}
   </>
 );
 

@@ -4,7 +4,7 @@ import React from "react";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
-import AssetSidebar from "components/AssetSidebar";
+import Sidebar from "components/Sidebar";
 import AreaEditorScene from "scene/AreaEditorScene";
 import * as hass from "store/actions/hass.actions";
 import { selectAreas } from "store/selectors/hass.selector";
@@ -37,7 +37,7 @@ function AreaEditPage() {
 
   return (
     <PageContainer display="flex" flexDirection="row">
-      <AssetSidebar />
+      <Sidebar />
       <SceneContainer>
         <AreaEditorScene area={area} />
       </SceneContainer>

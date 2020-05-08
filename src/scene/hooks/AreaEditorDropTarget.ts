@@ -38,8 +38,6 @@ export default function useAreaEditorDropTarget(generateId: () => number) {
 
     const ndc = new Vector2();
 
-    //test
-
     ndc.x = ((x - left) / width) * 2 - 1;
     ndc.y = -((y - top) / height) * 2 + 1;
 

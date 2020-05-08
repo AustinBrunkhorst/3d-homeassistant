@@ -87,6 +87,10 @@ export default function AreaEditorScene({ area }: AreaEditorSceneProps) {
     }
   }, [dispatch, selectedObjects]);
 
+  useHotkeys("escape", () => {
+    dispatch(actions.deselectAllObjects());
+  }, [dispatch]);
+
   return (
     <Container>
       <Canvas concurrent onCreated={setContext} shadowMap={true}>
