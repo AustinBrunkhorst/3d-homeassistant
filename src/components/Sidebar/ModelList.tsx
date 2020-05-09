@@ -56,7 +56,7 @@ function filterAssets(query: string, assets: Model[]): Model[] {
   }
 
   return assets.filter(
-    ({ title }) => title.toLowerCase().indexOf(sanitizedQuery) !== -1
+    ({ title }) => title.toLowerCase().includes(sanitizedQuery)
   );
 }
 

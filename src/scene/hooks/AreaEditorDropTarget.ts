@@ -119,7 +119,6 @@ export default function useAreaEditorDropTarget(generateId: () => number) {
   });
 
   const setContext = useCallback((instance: CanvasContext) => {
-    console.log('set context', instance);
     context.current = instance;
 
     const { gl, scene } = context.current;

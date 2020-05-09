@@ -7,7 +7,7 @@ import { getCameraMapControls } from "./MapControlsCamera";
 
 const TestThreeControls: any = ThreeTransformControls;
 
-function TransformControls({ object, onChange }) {
+function TransformControls({ object, onChange, onMouseDown, onMouseUp }) {
   const { camera } = useThree();
 
   const ref = useUpdate<any>(
@@ -28,22 +28,28 @@ function TransformControls({ object, onChange }) {
       }
     }
 
-    const onDrag = ({ value: isDragging }) => disableCameraControls(isDragging);
+    const onDrag = ({ value: isDragging, ...r }) => {
+      disableCameraControls(isDragging)
+    };
 
     const transformControls = ref.current;
 
     if (transformControls) {
       transformControls.addEventListener("dragging-changed", onDrag);
       transformControls.addEventListener("objectChange", onChange);
+      transformControls.addEventListener("mouseDown", onMouseDown);
+      transformControls.addEventListener("mouseUp", onMouseUp);
     }
 
     return () => {
       if (transformControls) {
         transformControls.removeEventListener('dragging-changed', onDrag);
         transformControls.removeEventListener("objectChange", onChange);
+        transformControls.removeEventListener("mouseDown", onMouseDown);
+        transformControls.removeEventListener("mouseUp", onMouseUp);
       }
     }
-  }, [ref, camera, object, onChange]);
+  }, [ref, camera, object, onChange, onMouseDown, onMouseUp]);
 
   useEventListener<KeyboardEvent>("keydown", event => {
     const controls = ref.current;

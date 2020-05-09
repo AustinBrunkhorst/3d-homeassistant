@@ -1,16 +1,16 @@
 import { HassEntity } from "home-assistant-js-websocket";
-import React, { memo, useMemo, useState } from "react";
+import React, { memo, useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useFrame, useResource } from "react-three-fiber";
 import {
-    Color, FrontSide, MathUtils as ThreeMath, Mesh, PointLight, Quaternion, Scene, Vector3,
+    Color, FrontSide, MathUtils as ThreeMath, Mesh, PointLight, Quaternion, Scene, Vector3, Object3D,
 } from "three";
-import { useDebouncedCallback } from "use-debounce";
 import * as actions from "store/actions";
 import { selectSelectedObjectIds } from "store/selectors/areaEditor.selector";
 import { selectEntityById } from "store/selectors/hass.selector";
 import AssetModel from "./AssetModel";
 import ThreeTransformControls from "./TransformControls";
+import { SceneObject } from "store/models/areaEditor.model";
 
 function getColorFromState(light?: HassEntity) {
   if (!light || light.state !== "on" || !light.attributes.rgb_color) {
@@ -28,10 +28,74 @@ function getBrightnessFromState(light?: HassEntity) {
   return light.attributes.brightness / 255;
 }
 
-function Light({ id, entityId, selected, position, intensity, distance, decay }) {
+function useSceneObject(id: number, threeObject?: Object3D) {
   const dispatch = useDispatch();
+
+  const saveTransform = useCallback((e) => {
+    const { position, quaternion, scale } = e.target.object;
+
+    dispatch(actions.updateObjectTransform({
+      id,
+      transform: {
+        position: { x: position.x, y: position.y, z: position.z },
+        rotation: { x: quaternion.x, y: quaternion.y, z: quaternion.z, w: quaternion.w },
+        scale: { x: scale.x, y: scale.y, z: scale.z },
+      }
+    }));
+  }, [id, dispatch]);
+
+  const [isUsingTransformTool, setIsUsingTransformTool] = useState(false);
+
+  const selectObject = useCallback(() => {
+    if (isUsingTransformTool) {
+      return;
+    }
+
+    dispatch(actions.selectObject({ id }))
+  }, [id, dispatch, isUsingTransformTool]);
+
+  const timerHandle = useRef<any>(0);
+
+  const onMouseDown = useCallback(() => {
+    setIsUsingTransformTool(true);
+  }, [setIsUsingTransformTool]);
+
+  const onMouseUp = useCallback(() => {
+    timerHandle.current = setTimeout(() => setIsUsingTransformTool(false), 10);
+  }, [setIsUsingTransformTool]);
+
+  useEffect(() => {
+    const currentHandle = timerHandle.current;
+
+    return () => {
+      if (currentHandle) {
+        clearTimeout(currentHandle);
+      }
+    };
+  }, []);
+
+  const renderTransformControls = useCallback(() => {
+    if (!threeObject) {
+      return null;
+    }
+
+    return (
+      <ThreeTransformControls
+        object={threeObject}
+        onChange={saveTransform}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
+      />
+    );
+  }, [onMouseDown, onMouseUp, saveTransform, threeObject]);
+
+  return { selectObject, renderTransformControls };
+}
+
+function Light({ id, entityId, selected, position, intensity, distance, decay }) {
   const lightEntity = useSelector(selectEntityById(entityId));
   const [ref, object] = useResource<PointLight>();
+  const { selectObject, renderTransformControls } = useSceneObject(id, object);
   
   const light = useMemo(() => {
     const color = getColorFromState(lightEntity);
@@ -49,23 +113,27 @@ function Light({ id, entityId, selected, position, intensity, distance, decay })
     );
   }, [decay, distance, intensity, lightEntity, position.x, position.y, position.z, ref]);
 
-  const [saveState] = useDebouncedCallback((e) => {
-    dispatch(actions.updateObjectTransform({
-      id: id,
-      transform: {
-        position: { x: e.target.object.position.x, y: e.target.object.position.y, z: e.target.object.position.z },
-        rotation: { x: e.target.object.quaternion.x, y: e.target.object.quaternion.y, z: e.target.object.quaternion.z, w: e.target.object.quaternion.w },
-        scale: { x: e.target.object.scale.x, y: e.target.object.scale.y, z: e.target.object.scale.z },
-      }
-    }));
-  }, 50);
+  const sceneObject = useMemo(() => {
+    return (
+      <mesh position={new Vector3(position.x, position.y, position.z)} onPointerDown={selectObject}>
+        <sphereBufferGeometry attach="geometry" args={[0.15]} />
+        <meshStandardMaterial
+          attach="material"
+          color="white"
+          emissive={new Color("white")}
+          emissiveIntensity={1}
+        />
+      </mesh>
+    );
+  }, [selectObject, position]);
 
   return <>
     {light}
+    {!selected && sceneObject}
     {object && selected && (
       <>
         <pointLightHelper args={[object]} />
-        <ThreeTransformControls object={object} onChange={saveState} />
+        {renderTransformControls()}
       </>
     )}
   </>;
@@ -118,12 +186,7 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
       {models}
       {lights}
       {dragState.current && (
-        <AssetModel
-          model={dragState.current.object.model}
-          position={dragState.current.position}
-          rotation={new Quaternion()}
-          scale={new Vector3(1, 1, 1)}
-        />
+        <DropPreview object={dragState.current.object} position={dragState.current.position} />
       )}
     </>
   );
@@ -147,21 +210,39 @@ const Ground = memo(() => (
   </mesh>
 ));
 
-const SelectableAssetModel = ({ id, model, position, rotation, scale, selected }: any) => {
-  const [object, setObject] = useState();
-  const dispatch = useDispatch();
-  const [saveState] = useDebouncedCallback((e) => {
-    dispatch(actions.updateObjectTransform({
-      id: id,
-      transform: {
-        position: { x: e.target.object.position.x, y: e.target.object.position.y, z: e.target.object.position.z },
-        rotation: { x: e.target.object.quaternion.x, y: e.target.object.quaternion.y, z: e.target.object.quaternion.z, w: e.target.object.quaternion.w },
-        scale: { x: e.target.object.scale.x, y: e.target.object.scale.y, z: e.target.object.scale.z },
-      }
-    }));
-  }, 50);
+interface DropPreviewProps {
+  object: SceneObject;
+  position: Vector3;
+}
 
-  const selectAsset = () => dispatch(actions.selectObject({ id: id }));
+const DropPreview = ({ object, position }: DropPreviewProps) => {
+  return (
+    object.type === "model" 
+      ? (
+        <AssetModel
+          model={object.model}
+          position={position}
+          rotation={new Quaternion()}
+          scale={new Vector3(1, 1, 1)}
+        />
+      )
+      : (
+        <mesh position={position}>
+          <sphereBufferGeometry attach="geometry" args={[0.25]} />
+          <meshStandardMaterial
+            attach="material"
+            color="red"
+            emissive={new Color("white")}
+            emissiveIntensity={10}
+          />
+        </mesh>
+      )
+  );
+}
+
+const SelectableAssetModel = ({ id, model, position, rotation, scale, selected }: any) => {
+  const [object, setObject] = useState<Object3D>();
+  const { selectObject, renderTransformControls } = useSceneObject(id, object);
 
   return (
     <>
@@ -172,9 +253,9 @@ const SelectableAssetModel = ({ id, model, position, rotation, scale, selected }
         position={position}
         rotation={rotation}
         scale={scale}
-        onClick={selectAsset}
+        onClick={selectObject}
       />
-      {object && selected && <ThreeTransformControls object={object} onChange={saveState} />}
+      {object && selected && renderTransformControls()}
     </>
   );
 };

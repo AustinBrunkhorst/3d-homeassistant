@@ -49,8 +49,7 @@ export default function AreaEditorScene({ area }: AreaEditorSceneProps) {
   const setContext = useCallback((context) => {
     context.gl.shadowMap.enabled = true;
     context.gl.shadowMap.type = PCFSoftShadowMap;
-
-    console.log('context', context);
+    
     setDropTargetContext(context);
   }, [setDropTargetContext]);
 

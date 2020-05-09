@@ -8,7 +8,7 @@ export interface ModelAssetProps {
   position: THREE.Vector3;
   rotation: THREE.Quaternion;
   scale: THREE.Vector3;
-  onClick?: () => void;
+  onClick?: (e: any) => void;
 }
 
 const ModelAsset = forwardRef(

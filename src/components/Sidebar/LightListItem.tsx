@@ -29,7 +29,7 @@ export default DragSource(
   AssetItemDragType,
   {
     beginDrag: ({ light }: AssetListItemProps) => ({
-      object: { type: 'light', entityId: light.entity_id } as Partial<LightObject>
+      object: { type: 'light', entityId: light.entity_id, intensity: 1, distance: 1, decay: 1 } as Partial<LightObject>
     })
   },
   (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
