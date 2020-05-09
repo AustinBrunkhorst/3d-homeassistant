@@ -58,6 +58,14 @@ const reducer = createReducer(initialState)
       );
     })
   )
+  .handleAction(actions.updateLight, (state, { payload: { id, light } }) =>
+    produce(state, draft => {
+      draft.objects = objectAdapter.updateOne(
+        state.objects, 
+        { id, changes: light }
+      );
+    })
+  )
   .handleAction(actions.deleteObject, (state, { payload }) =>
     produce(state, draft => {
       draft.objects = objectAdapter.removeOne(state.objects, payload);
@@ -71,8 +79,8 @@ export default undoable(reducer, {
     actions.addObject,
     actions.selectObject,
     actions.updateObjectTransform,
+    actions.updateLight,
     actions.deselectAllObjects,
     actions.deleteObject
-  ]),
-  groupBy: groupByActionTypes(getType(actions.selectObject))
+  ])
 });

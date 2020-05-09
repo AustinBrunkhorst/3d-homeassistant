@@ -45,4 +45,6 @@ export interface LightObject extends BaseSceneObject  {
   entityId: string;
   lightType: LightType;
   intensity: number;
+  distance: number;
+  decay: number;
 }

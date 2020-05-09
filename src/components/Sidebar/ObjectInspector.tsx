@@ -1,10 +1,11 @@
 import { Box, List, ListItem, ListItemText, ListSubheader, TextField } from "@material-ui/core";
 import WbIncandescentIcon from "@material-ui/icons/WbIncandescent";
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
 import { Euler, MathUtils, Quaternion } from "three";
 import * as actions from "store/actions/areaEditor.actions";
+import { LightObject, SceneObject } from "store/models/areaEditor.model";
 import { selectSelectedObjects } from "store/selectors/areaEditor.selector";
 import { AssetThumbnail } from "./elements";
 
@@ -15,16 +16,42 @@ const Container = styled.div`
 `;
 
 export function ObjectInspector() {
-  const dispatch = useDispatch();
   const [selectedObject] = useSelector(selectSelectedObjects);
 
   if (!selectedObject) {
     return <Container>Select an object</Container>;
   }
+  
+  return (
+    <Container>
+      <List subheader={<li />}>
+        <ListItem>
+          <Box mr={2}>
+            {
+              selectedObject.type === 'model'
+                ? <AssetThumbnail src={selectedObject.model.thumbnail} />
+                : <WbIncandescentIcon />
+            }
+          </Box>
+          <ListItemText primary={selectedObject.type === 'model' ? selectedObject.model.title : selectedObject.entityId} />
+        </ListItem>
+        <TransformInspector object={selectedObject} />
+        {selectedObject.type === 'light' && <LightInspector object={selectedObject} />}
+      </List>
+    </Container>
+  );
+}
 
-  const { transform: { position, rotation: quat, scale } } = selectedObject;
+interface InspectorProps {
+  object: SceneObject;
+}
 
-  const rotation = new Euler().setFromQuaternion(new Quaternion(quat.x, quat.y, quat.z, quat.w));
+const TransformInspector = ({ object }: InspectorProps) => {
+  const dispatch = useDispatch();
+  
+  const { position, rotation: quat, scale } = object.transform;
+
+  const rotation = useMemo(() => new Euler().setFromQuaternion(new Quaternion(quat.x, quat.y, quat.z, quat.w)), [quat]);
 
   const updatePosition = (x: number | null, y: number | null, z: number | null) => {
     const newPosition = { x: position.x, y: position.y, z: position.z };
@@ -42,7 +69,7 @@ export function ObjectInspector() {
     }
 
     dispatch(actions.updateObjectTransform({
-      id: selectedObject.id,
+      id: object.id,
       transform: {
         position: newPosition,
         rotation: quat,
@@ -67,7 +94,7 @@ export function ObjectInspector() {
     }
 
     dispatch(actions.updateObjectTransform({
-      id: selectedObject.id,
+      id: object.id,
       transform: {
         position,
         rotation: quat,
@@ -86,7 +113,7 @@ export function ObjectInspector() {
     const quat = new Quaternion().setFromEuler(newRotation);
 
     dispatch(actions.updateObjectTransform({
-      id: selectedObject.id,
+      id: object.id,
       transform: {
         position,
         rotation: { x: quat.x, y: quat.y, z: quat.z, w: quat.w },
@@ -94,39 +121,59 @@ export function ObjectInspector() {
       }
     }))
   };
-  
+
   return (
-    <Container>
-      <List subheader={<li />}>
-        <ListItem>
-          <Box mr={2}>
-            {
-              selectedObject.type === 'model'
-                ? <AssetThumbnail src={selectedObject.model.thumbnail} />
-                : <WbIncandescentIcon />
-            }
-          </Box>
-          <ListItemText primary={selectedObject.type === 'model' ? selectedObject.model.title : selectedObject.entityId} />
-        </ListItem>
-        <ListSubheader>Translation</ListSubheader>
-        <ListItem dense>
-          <TextField type="number" label="x" color="secondary" value={position.x} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePosition(e.target.valueAsNumber, null, null)} />
-          <TextField type="number" label="y" color="secondary" value={position.y} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePosition(null, e.target.valueAsNumber, null)} />
-          <TextField type="number" label="z" color="secondary" value={position.z} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePosition(null, null, e.target.valueAsNumber)} />
-        </ListItem>
-        <ListSubheader>Scale</ListSubheader>
-        <ListItem dense>
-          <TextField type="number" label="x" color="secondary" value={scale.x} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateScale(e.target.valueAsNumber, null, null)} />
-          <TextField type="number" label="y" color="secondary" value={scale.y} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateScale(null, e.target.valueAsNumber, null)} />
-          <TextField type="number" label="z" color="secondary" value={scale.z} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateScale(null, null, e.target.valueAsNumber)} />
-        </ListItem>
-        <ListSubheader>Rotation</ListSubheader>
-        <ListItem dense>
-          <TextField type="number" label="x" color="secondary" value={MathUtils.radToDeg(rotation.x)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRotation(e.target.valueAsNumber, null, null)} />
-          <TextField type="number" label="y" color="secondary" value={MathUtils.radToDeg(rotation.y)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRotation(null, e.target.valueAsNumber, null)} />
-          <TextField type="number" label="z" color="secondary" value={MathUtils.radToDeg(rotation.z)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRotation(null, null, e.target.valueAsNumber)} />
-        </ListItem>
-      </List>
-    </Container>
+    <>
+      <ListSubheader>Translation</ListSubheader>
+      <ListItem dense>
+        <TextField type="number" label="x" color="secondary" value={position.x} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePosition(e.target.valueAsNumber, null, null)} />
+        <TextField type="number" label="y" color="secondary" value={position.y} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePosition(null, e.target.valueAsNumber, null)} />
+        <TextField type="number" label="z" color="secondary" value={position.z} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePosition(null, null, e.target.valueAsNumber)} />
+      </ListItem>
+      <ListSubheader>Scale</ListSubheader>
+      <ListItem dense>
+        <TextField type="number" label="x" color="secondary" value={scale.x} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateScale(e.target.valueAsNumber, null, null)} />
+        <TextField type="number" label="y" color="secondary" value={scale.y} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateScale(null, e.target.valueAsNumber, null)} />
+        <TextField type="number" label="z" color="secondary" value={scale.z} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateScale(null, null, e.target.valueAsNumber)} />
+      </ListItem>
+      <ListSubheader>Rotation</ListSubheader>
+      <ListItem dense>
+        <TextField type="number" label="x" color="secondary" value={MathUtils.radToDeg(rotation.x)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRotation(e.target.valueAsNumber, null, null)} />
+        <TextField type="number" label="y" color="secondary" value={MathUtils.radToDeg(rotation.y)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRotation(null, e.target.valueAsNumber, null)} />
+        <TextField type="number" label="z" color="secondary" value={MathUtils.radToDeg(rotation.z)} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateRotation(null, null, e.target.valueAsNumber)} />
+      </ListItem>
+    </>
+  );
+};
+
+const LightInspector = ({ object }: InspectorProps) => {
+  const dispatch = useDispatch();
+  const light = object as LightObject;
+
+  const updateIntensity = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(actions.updateLight({ id: object.id, light: { intensity: e.target.valueAsNumber }}));
+  }, [dispatch, object.id]);
+
+  const updateDistance = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(actions.updateLight({ id: object.id, light: { distance: e.target.valueAsNumber }}));
+  }, [dispatch, object.id]);
+
+  const updateDecay = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(actions.updateLight({ id: object.id, light: { decay: e.target.valueAsNumber }}));
+  }, [dispatch, object.id]);
+
+  return (
+    <>
+      <ListSubheader>Light</ListSubheader>
+      <ListItem dense>
+        <TextField fullWidth type="number" label="Intensity" color="secondary" value={light.intensity} onChange={updateIntensity} />
+      </ListItem>
+      <ListItem dense>
+        <TextField fullWidth type="number" label="Distance" color="secondary" value={light.distance} onChange={updateDistance} />
+      </ListItem>
+      <ListItem dense>
+        <TextField fullWidth type="number" label="Decay" color="secondary" value={light.decay} onChange={updateDecay} />
+      </ListItem>
+    </>
   );
 }

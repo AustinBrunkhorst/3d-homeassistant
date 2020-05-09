@@ -25,5 +25,8 @@ export default function* areaEditorSaga() {
   yield takeLatest(actions.loadArea.request, loadArea);
   yield takeLatest(actions.addObject, saveChanges);
   yield takeLatest(actions.updateObjectTransform, saveChanges);
+  yield takeLatest(actions.updateLight, saveChanges);
   yield takeLatest(actions.deleteObject, saveChanges);
+  yield takeLatest(actions.undo, saveChanges);
+  yield takeLatest(actions.redo, saveChanges);
 }

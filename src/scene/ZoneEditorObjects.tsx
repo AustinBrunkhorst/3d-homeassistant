@@ -17,7 +17,7 @@ function getColorFromState(light?: HassEntity) {
     return new Color();
   }
 
-  return new Color(...light.attributes.rgb_color.map(c => c / 255));
+  return new Color(...light.attributes.rgb_color.map((c: number) => c / 255));
 }
 
 function getBrightnessFromState(light?: HassEntity) {
@@ -28,7 +28,7 @@ function getBrightnessFromState(light?: HassEntity) {
   return light.attributes.brightness / 255;
 }
 
-function Light({ id, entityId, selected, position }) {
+function Light({ id, entityId, selected, position, intensity, distance, decay }) {
   const dispatch = useDispatch();
   const lightEntity = useSelector(selectEntityById(entityId));
   const [ref, object] = useResource<PointLight>();
@@ -42,11 +42,12 @@ function Light({ id, entityId, selected, position }) {
         ref={ref}
         position={new Vector3(position.x, position.y, position.z)}
         color={color}
-        intensity={brightness}
-        distance={10}
+        intensity={brightness * intensity}
+        distance={distance}
+        decay={decay}
       />
     );
-  }, [lightEntity, position.x, position.y, position.z, ref]);
+  }, [decay, distance, intensity, lightEntity, position.x, position.y, position.z, ref]);
 
   const [saveState] = useDebouncedCallback((e) => {
     dispatch(actions.updateObjectTransform({
@@ -80,13 +81,16 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
 
   const lights = useMemo(
     () =>
-      droppedAssets.filter(({ type }) => type === 'light').map(({ id, entityId, transform: { position } }) => (
+      droppedAssets.filter(({ type }) => type === 'light').map(({ id, entityId, transform: { position }, intensity, distance, decay }) => (
         <Light
           id={id}
           entityId={entityId}
           key={id}
           position={position}
           selected={selectedObjects.includes(id)}
+          intensity={intensity}
+          distance={distance}
+          decay={decay}
         />
       )),
     [droppedAssets, selectedObjects]

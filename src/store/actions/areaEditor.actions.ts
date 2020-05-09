@@ -1,5 +1,5 @@
 import { createAsyncAction, createStandardAction } from "typesafe-actions";
-import { SceneObject, Transform } from "../models/areaEditor.model";
+import { LightObject, SceneObject, Transform } from "../models/areaEditor.model";
 
 export const loadArea = createAsyncAction(
   "areaEditor/LOAD_AREA",
@@ -19,6 +19,11 @@ export const deselectAllObjects = createStandardAction("areaEditor/DESELECT_ALL_
 export const updateObjectTransform = createStandardAction("areaEditor/UPDATE_OBJECT_TRANSFORM")<{
   id: number;
   transform: Transform;
+}>();
+
+export const updateLight = createStandardAction("areaEditor/UPDATE_LIGHT")<{
+  id: number;
+  light: Partial<LightObject>;
 }>();
 
 export const deleteObject = createStandardAction("areaEditor/DELETE_OBJECT")<number>();
