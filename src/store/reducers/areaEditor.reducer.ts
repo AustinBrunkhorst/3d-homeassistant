@@ -2,7 +2,7 @@ import { createEntityAdapter, EntityState } from "@reduxjs/toolkit";
 import produce from "immer";
 import undoable, { groupByActionTypes } from "redux-undo";
 import { ActionType, createReducer, getType, isActionOf } from "typesafe-actions";
-import { SceneObject } from "store/models/areaEditor.model";
+import { SceneObject, Transform } from "store/models/areaEditor.model";
 import * as actions from "../actions/areaEditor.actions";
 
 export type Actions = ActionType<typeof actions>;
@@ -10,6 +10,7 @@ export type Actions = ActionType<typeof actions>;
 export interface AreaEditorState {
   areaId: string;
   objects: EntityState<SceneObject>;
+  isSelectionDisabled: boolean;
   selectedObjects: number[];
 }
 
@@ -20,6 +21,7 @@ export const selectors = objectAdapter.getSelectors();
 export const initialState: AreaEditorState = {
   areaId: "",
   objects: objectAdapter.getInitialState(),
+  isSelectionDisabled: false,
   selectedObjects: []
 };
 
@@ -40,6 +42,11 @@ const reducer = createReducer(initialState)
       draft.objects = objectAdapter.addOne(state.objects, payload);
     })
   )
+  .handleAction(actions.setIsSelectionDisabled, (state, { payload }) =>
+    produce(state, draft => {
+      draft.isSelectionDisabled = payload;
+    })
+  )
   .handleAction(actions.selectObject, (state, { payload: { id, clearSelection } }) =>
     produce(state, draft => {
       draft.selectedObjects = [id];
@@ -52,6 +59,45 @@ const reducer = createReducer(initialState)
   )
   .handleAction(actions.updateObjectTransform, (state, { payload: { id, transform } }) =>
     produce(state, draft => {
+      draft.objects = objectAdapter.updateOne(
+        state.objects, 
+        { id, changes: { transform } }
+      );
+    })
+  )
+  .handleAction(actions.updateObjectPosition, (state, { payload: { id, position } }) =>
+    produce(state, draft => {
+      const transform = {
+        ...selectors.selectById(state.objects, id)?.transform,
+        position
+      } as Transform;
+
+      draft.objects = objectAdapter.updateOne(
+        state.objects, 
+        { id, changes: { transform } }
+      );
+    })
+  )
+  .handleAction(actions.updateObjectScale, (state, { payload: { id, scale } }) =>
+    produce(state, draft => {
+      const transform = {
+        ...selectors.selectById(state.objects, id)?.transform,
+        scale
+      } as Transform;
+
+      draft.objects = objectAdapter.updateOne(
+        state.objects, 
+        { id, changes: { transform } }
+      );
+    })
+  )
+  .handleAction(actions.updateObjectRotation, (state, { payload: { id, rotation } }) =>
+    produce(state, draft => {
+      const transform = {
+        ...selectors.selectById(state.objects, id)?.transform,
+        rotation
+      } as Transform;
+
       draft.objects = objectAdapter.updateOne(
         state.objects, 
         { id, changes: { transform } }
@@ -79,8 +125,18 @@ export default undoable(reducer, {
     actions.addObject,
     actions.selectObject,
     actions.updateObjectTransform,
+    actions.updateObjectPosition,
+    actions.updateObjectScale,
+    actions.updateObjectRotation,
     actions.updateLight,
     actions.deselectAllObjects,
     actions.deleteObject
+  ]),
+  groupBy: groupByActionTypes([
+    getType(actions.selectObject),
+    getType(actions.deselectAllObjects),
+    getType(actions.updateObjectPosition),
+    getType(actions.updateObjectScale),
+    getType(actions.updateObjectRotation),
   ])
 });

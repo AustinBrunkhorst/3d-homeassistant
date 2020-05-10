@@ -6,6 +6,8 @@ import { useLocalStorageRef } from "core/hooks/LocalStorage";
 
 export interface MapControlsCameraProps {
   name: string;
+  onStart?: () => void;
+  onEnd?: () => void;
 }
 
 const TestOrbit: any = OrbitControls;
@@ -20,17 +22,43 @@ function storeCameraMapControls(camera: Camera, controls: any) {
   }
 }
 
-export default function MapControlsCamera({ name }: MapControlsCameraProps) {
+export default function MapControlsCamera({ name, onStart, onEnd }: MapControlsCameraProps) {
   const { size, setDefaultCamera } = useThree();
 
   const [ref, camera] = useResource<PerspectiveCamera>();
-  const [controls] = usePersistedMapControls(name);
+  const [controls, setControls] = usePersistedMapControls(name);
 
   useEffect(() => {
     if (camera) {
       setDefaultCamera(camera);
     }
   }, [camera, setDefaultCamera]);
+
+  useEffect(() => {
+    const currentControls = controls;
+
+    if (currentControls) {
+      if (onStart) {
+        controls.addEventListener("start", onStart);
+      }
+
+      if (onEnd) {
+        controls.addEventListener("end", onEnd);
+      }
+    }
+
+    return () => {
+      if (currentControls) {
+        if (onStart) {
+          controls.removeEventListener("start", onStart);
+        }
+  
+        if (onEnd) {
+          controls.removeEventListener("end", onEnd);
+        }
+      }
+    };
+  }, [controls, onStart, onEnd]);
 
   return (
     <>
@@ -46,7 +74,7 @@ export default function MapControlsCamera({ name }: MapControlsCameraProps) {
         }}
       />
         <TestOrbit
-          ref={controls}
+          ref={setControls}
           enableDamping={false}
           screenSpacePanning={false}
           maxPolarAngle={Math.PI / 2}
@@ -108,5 +136,5 @@ function usePersistedMapControls(name: string) {
     };
   }, [name, controls, serializedState, persistState]);
 
-  return [setControls];
+  return [controls, setControls];
 }

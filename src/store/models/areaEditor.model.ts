@@ -1,10 +1,10 @@
-interface Vector3 {
+export interface Vector3 {
   x: number;
   y: number;
   z: number;
 }
 
-interface Quaternion {
+export interface Quaternion {
   x: number;
   y: number;
   z: number;

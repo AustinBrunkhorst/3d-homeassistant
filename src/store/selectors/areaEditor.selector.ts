@@ -6,5 +6,6 @@ import { State } from "../reducers/index";
 export const selectAreaEditor = (state: State) => state.areaEditor.present; 
 export const selectAreaId = createSelector(selectAreaEditor, (state: AreaEditorState) => state.areaId);
 export const selectObjects = createSelector(selectAreaEditor, (state: AreaEditorState) => selectors.selectAll(state.objects));
+export const selectIsSelectionDisabled = createSelector(selectAreaEditor, (state: AreaEditorState) => state.isSelectionDisabled);
 export const selectSelectedObjectIds = createSelector(selectAreaEditor, (state: AreaEditorState) => state.selectedObjects);
 export const selectSelectedObjects = createSelector(selectAreaEditor, state => state.selectedObjects.map(id => selectors.selectById(state.objects, id) as SceneObject));

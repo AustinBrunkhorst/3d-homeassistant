@@ -110,19 +110,21 @@ interface SceneProps {
   dragState: React.MutableRefObject<any>;
 }
 
-const Scene = memo(({ area, objects, dragState }: SceneProps) => (
-  <>
-    <ZoneEditorObjects droppedAssets={objects} dragState={dragState} />
-    <MapControlsCamera name={`camera.${area.area_id}`} />
-    <EditorEnvironment />
-    <Suspense fallback={null}>
-      <StandardEffects
-        smaa                      // Can be a boolean (default=true)
-        ao                        // Can be a boolean or all valid postprocessing AO props (default=true)
-        bloom                     // Can be a boolean or all valid postprocessing Bloom props (default=true)
-        edgeDetection={0.1}       // SMAA precision (default=0.1)
-        bloomOpacity={1}          // Bloom blendMode opacity (default=1)
-      />
-    </Suspense>
-  </>
-));
+const Scene = memo(({ area, objects, dragState }: SceneProps) => {
+  return (
+    <>
+      <ZoneEditorObjects droppedAssets={objects} dragState={dragState} />
+      <MapControlsCamera name={`camera.${area.area_id}`} />
+      <EditorEnvironment />
+      <Suspense fallback={null}>
+        <StandardEffects
+          smaa                      // Can be a boolean (default=true)
+          ao                        // Can be a boolean or all valid postprocessing AO props (default=true)
+          bloom                     // Can be a boolean or all valid postprocessing Bloom props (default=true)
+          edgeDetection={0.1}       // SMAA precision (default=0.1)
+          bloomOpacity={1}          // Bloom blendMode opacity (default=1)
+        />
+      </Suspense>
+    </>
+  );
+});

@@ -1,16 +1,16 @@
 import { HassEntity } from "home-assistant-js-websocket";
-import React, { memo, useMemo, useState, useCallback, useRef, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { memo, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import { useFrame, useResource } from "react-three-fiber";
 import {
-    Color, FrontSide, MathUtils as ThreeMath, Mesh, PointLight, Quaternion, Scene, Vector3, Object3D,
+    Color, FrontSide, MathUtils as ThreeMath, Mesh, Object3D, PointLight, Quaternion, Scene,
+    Vector3,
 } from "three";
-import * as actions from "store/actions";
+import { SceneObject } from "store/models/areaEditor.model";
 import { selectSelectedObjectIds } from "store/selectors/areaEditor.selector";
 import { selectEntityById } from "store/selectors/hass.selector";
 import AssetModel from "./AssetModel";
-import ThreeTransformControls from "./TransformControls";
-import { SceneObject } from "store/models/areaEditor.model";
+import { useSceneObject } from "./hooks/SceneObject";
 
 function getColorFromState(light?: HassEntity) {
   if (!light || light.state !== "on" || !light.attributes.rgb_color) {
@@ -28,79 +28,15 @@ function getBrightnessFromState(light?: HassEntity) {
   return light.attributes.brightness / 255;
 }
 
-function useSceneObject(id: number, threeObject?: Object3D) {
-  const dispatch = useDispatch();
-
-  const saveTransform = useCallback((e) => {
-    const { position, quaternion, scale } = e.target.object;
-
-    dispatch(actions.updateObjectTransform({
-      id,
-      transform: {
-        position: { x: position.x, y: position.y, z: position.z },
-        rotation: { x: quaternion.x, y: quaternion.y, z: quaternion.z, w: quaternion.w },
-        scale: { x: scale.x, y: scale.y, z: scale.z },
-      }
-    }));
-  }, [id, dispatch]);
-
-  const [isUsingTransformTool, setIsUsingTransformTool] = useState(false);
-
-  const selectObject = useCallback(() => {
-    if (isUsingTransformTool) {
-      return;
-    }
-
-    dispatch(actions.selectObject({ id }))
-  }, [id, dispatch, isUsingTransformTool]);
-
-  const timerHandle = useRef<any>(0);
-
-  const onMouseDown = useCallback(() => {
-    setIsUsingTransformTool(true);
-  }, [setIsUsingTransformTool]);
-
-  const onMouseUp = useCallback(() => {
-    timerHandle.current = setTimeout(() => setIsUsingTransformTool(false), 10);
-  }, [setIsUsingTransformTool]);
-
-  useEffect(() => {
-    const currentHandle = timerHandle.current;
-
-    return () => {
-      if (currentHandle) {
-        clearTimeout(currentHandle);
-      }
-    };
-  }, []);
-
-  const renderTransformControls = useCallback(() => {
-    if (!threeObject) {
-      return null;
-    }
-
-    return (
-      <ThreeTransformControls
-        object={threeObject}
-        onChange={saveTransform}
-        onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
-      />
-    );
-  }, [onMouseDown, onMouseUp, saveTransform, threeObject]);
-
-  return { selectObject, renderTransformControls };
-}
-
 function Light({ id, entityId, selected, position, intensity, distance, decay }) {
   const lightEntity = useSelector(selectEntityById(entityId));
   const [ref, object] = useResource<PointLight>();
   const { selectObject, renderTransformControls } = useSceneObject(id, object);
+
+  const color = useMemo(() => getColorFromState(lightEntity), [lightEntity]);
+  const brightness = useMemo(() => getBrightnessFromState(lightEntity), [lightEntity]);
   
   const light = useMemo(() => {
-    const color = getColorFromState(lightEntity);
-    const brightness = getBrightnessFromState(lightEntity);
-
     return (
       <pointLight
         ref={ref}
@@ -111,21 +47,21 @@ function Light({ id, entityId, selected, position, intensity, distance, decay })
         decay={decay}
       />
     );
-  }, [decay, distance, intensity, lightEntity, position.x, position.y, position.z, ref]);
+  }, [brightness, color, decay, distance, intensity, position.x, position.y, position.z, ref]);
 
   const sceneObject = useMemo(() => {
     return (
-      <mesh position={new Vector3(position.x, position.y, position.z)} onPointerDown={selectObject}>
-        <sphereBufferGeometry attach="geometry" args={[0.15]} />
+      <mesh position={new Vector3(position.x, position.y, position.z)} onClick={selectObject}>
+        <sphereBufferGeometry attach="geometry" args={[0.05]} />
         <meshStandardMaterial
           attach="material"
-          color="white"
-          emissive={new Color("white")}
-          emissiveIntensity={1}
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.5}
         />
       </mesh>
     );
-  }, [selectObject, position]);
+  }, [position.x, position.y, position.z, selectObject, color]);
 
   return <>
     {light}

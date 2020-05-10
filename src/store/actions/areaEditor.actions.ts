@@ -1,5 +1,7 @@
 import { createAsyncAction, createStandardAction } from "typesafe-actions";
-import { LightObject, SceneObject, Transform } from "../models/areaEditor.model";
+import {
+    LightObject, Quaternion, SceneObject, Transform, Vector3,
+} from "../models/areaEditor.model";
 
 export const loadArea = createAsyncAction(
   "areaEditor/LOAD_AREA",
@@ -8,6 +10,8 @@ export const loadArea = createAsyncAction(
 )<string, SceneObject[], Error>();
 
 export const addObject = createStandardAction("areaEditor/ADD_OBJECT")<SceneObject>();
+
+export const setIsSelectionDisabled = createStandardAction("areaEditor/SET_SELECTION_DISABLED")<boolean>();
 
 export const selectObject = createStandardAction("areaEditor/SELECT_OBJECT")<{
   id: number;
@@ -19,6 +23,21 @@ export const deselectAllObjects = createStandardAction("areaEditor/DESELECT_ALL_
 export const updateObjectTransform = createStandardAction("areaEditor/UPDATE_OBJECT_TRANSFORM")<{
   id: number;
   transform: Transform;
+}>();
+
+export const updateObjectPosition = createStandardAction("areaEditor/UPDATE_OBJECT_POSITION")<{
+  id: number;
+  position: Vector3;
+}>();
+
+export const updateObjectScale = createStandardAction("areaEditor/UPDATE_OBJECT_SCALE")<{
+  id: number;
+  scale: Vector3;
+}>();
+
+export const updateObjectRotation = createStandardAction("areaEditor/UPDATE_OBJECT_ROTATION")<{
+  id: number;
+  rotation: Quaternion;
 }>();
 
 export const updateLight = createStandardAction("areaEditor/UPDATE_LIGHT")<{
