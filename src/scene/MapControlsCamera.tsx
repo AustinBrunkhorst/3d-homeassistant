@@ -1,13 +1,14 @@
 import { OrbitControls } from "drei";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useResource, useThree } from "react-three-fiber";
 import { Camera, PerspectiveCamera } from "three";
 import { useLocalStorageRef } from "core/hooks/LocalStorage";
+import * as actions from "store/actions/areaEditor.actions";
+import { selectIsSelectionDisabled } from "store/selectors/areaEditor.selector";
 
 export interface MapControlsCameraProps {
   name: string;
-  onStart?: () => void;
-  onEnd?: () => void;
 }
 
 const TestOrbit: any = OrbitControls;
@@ -22,43 +23,17 @@ function storeCameraMapControls(camera: Camera, controls: any) {
   }
 }
 
-export default function MapControlsCamera({ name, onStart, onEnd }: MapControlsCameraProps) {
+export default function MapControlsCamera({ name }: MapControlsCameraProps) {
   const { size, setDefaultCamera } = useThree();
 
   const [ref, camera] = useResource<PerspectiveCamera>();
-  const [controls, setControls] = usePersistedMapControls(name);
+  const [setControls] = usePersistedMapControls(name);
 
   useEffect(() => {
     if (camera) {
       setDefaultCamera(camera);
     }
   }, [camera, setDefaultCamera]);
-
-  useEffect(() => {
-    const currentControls = controls;
-
-    if (currentControls) {
-      if (onStart) {
-        controls.addEventListener("start", onStart);
-      }
-
-      if (onEnd) {
-        controls.addEventListener("end", onEnd);
-      }
-    }
-
-    return () => {
-      if (currentControls) {
-        if (onStart) {
-          controls.removeEventListener("start", onStart);
-        }
-  
-        if (onEnd) {
-          controls.removeEventListener("end", onEnd);
-        }
-      }
-    };
-  }, [controls, onStart, onEnd]);
 
   return (
     <>
@@ -88,53 +63,68 @@ export default function MapControlsCamera({ name, onStart, onEnd }: MapControlsC
 }
 
 function usePersistedMapControls(name: string) {
+  const dispatch = useDispatch();
   const [controls, setControls] = useState<any>();
   const [serializedState, persistState] = useLocalStorageRef(name, null, 200);
+  const isSelectionDisabled = useSelector(selectIsSelectionDisabled);
+
+  const onChange = useCallback(() => {
+    if (!controls) {
+      return;
+    }
+
+    if (!isSelectionDisabled) {
+      dispatch(actions.setIsSelectionDisabled(true));
+    }
+
+    controls.saveState();
+
+    persistState({
+      target: controls.target0,
+      position: controls.position0,
+      zoom: controls.zoom0
+    });
+  }, [controls, dispatch, isSelectionDisabled, persistState]);
+
+  const onEnd = useCallback(() => {
+    dispatch(actions.setIsSelectionDisabled(false));
+  }, [dispatch]);
 
   useEffect(() => {
-    function saveControlsState() {
-      if (!controls) {
-        return;
+    if (controls && serializedState != null) {
+      const { target, position, zoom } = serializedState;
+
+      if (!target || !position || isNaN(zoom)) {
+        return console.error(
+          `${name} serialization malformed`,
+          serializedState
+        );
       }
 
       controls.saveState();
 
-      persistState({
-        target: controls.target0,
-        position: controls.position0,
-        zoom: controls.zoom0
-      });
+      controls.target0.copy(target);
+      controls.position0.copy(position);
+      controls.zoom0 = zoom;
+
+      controls.reset();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controls, name]);
 
+  useEffect(() => {
     if (controls) {
-      if (serializedState != null) {
-        const { target, position, zoom } = serializedState;
-
-        if (!target || !position || isNaN(zoom)) {
-          return console.error(
-            `${name} serialization malformed`,
-            serializedState
-          );
-        }
-
-        controls.saveState();
-
-        controls.target0.copy(target);
-        controls.position0.copy(position);
-        controls.zoom0 = zoom;
-
-        controls.reset();
-      }
-
-      controls.addEventListener("change", saveControlsState);
+      controls.addEventListener("change", onChange);
+      controls.addEventListener("end", onEnd);
     }
 
     return () => {
       if (controls) {
-        controls.removeEventListener("change", saveControlsState);
+        controls.removeEventListener("change", onChange);
+        controls.removeEventListener("end", onEnd);
       }
     };
-  }, [name, controls, serializedState, persistState]);
+  }, [name, controls, serializedState, persistState, onEnd, onChange]);
 
-  return [controls, setControls];
+  return [setControls];
 }

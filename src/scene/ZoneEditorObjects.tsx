@@ -68,7 +68,7 @@ function Light({ id, entityId, selected, position, intensity, distance, decay })
     {!selected && sceneObject}
     {object && selected && (
       <>
-        <pointLightHelper args={[object]} />
+        <pointLightHelper args={[object, distance]} />
         {renderTransformControls()}
       </>
     )}
