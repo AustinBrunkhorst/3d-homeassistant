@@ -8,7 +8,7 @@ import { AssetItemDragType } from "core/dragDrop/types";
 import * as actions from "store/actions";
 import { SceneObject } from "store/models/areaEditor.model";
 import { snap } from "util/Vector";
-import { getGroundObject } from "../ZoneEditorObjects";
+import { getGroundObject } from "../AreaEditorObjects";
 
 interface SceneObjectDragItem extends DragObjectWithType {
   object: SceneObject;

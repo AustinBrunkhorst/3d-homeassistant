@@ -1,19 +1,20 @@
 import { StandardEffects } from "drei";
-import React, { memo, Suspense, useCallback, useContext, useEffect, useRef } from "react";
+import { BlendFunction, OutlineEffect } from "postprocessing";
+import React, { memo, Suspense, useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Provider, ReactReduxContext, useDispatch, useSelector } from "react-redux";
-import { Canvas } from "react-three-fiber";
+import { Canvas, useThree } from "react-three-fiber";
 import styled from "styled-components";
-import { PCFSoftShadowMap } from "three";
+import { Object3D, PCFSoftShadowMap } from "three";
 import "scene/extensions";
 import * as actions from "store/actions/areaEditor.actions";
 import { Area } from "store/models/hass.model";
 import { selectObjects, selectSelectedObjects } from "store/selectors/areaEditor.selector";
+import AreaEditorObjects from "./AreaEditorObjects";
 import DebugStats from "./DebugStats";
 import EditorEnvironment from "./EditorEnvironment";
 import useAreaEditorDropTarget from "./hooks/AreaEditorDropTarget";
 import MapControlsCamera from "./MapControlsCamera";
-import ZoneEditorObjects from "./ZoneEditorObjects";
 
 const Container = styled.div`
   position: relative;
@@ -86,15 +87,21 @@ export default function AreaEditorScene({ area }: AreaEditorSceneProps) {
     }
   }, [dispatch, selectedObjects]);
 
+  const selectObjectRef = useRef<(objects: Object3D[]) => void>();
+
   useHotkeys("escape", () => {
     dispatch(actions.deselectAllObjects());
+
+    if (selectObjectRef.current) {
+      selectObjectRef.current([]);
+    }
   }, [dispatch]);
 
   return (
     <Container>
-      <Canvas concurrent onCreated={setContext} shadowMap={true}>
+      <Canvas concurrent onCreated={setContext}>
         <Provider store={reduxContext.store}>
-          <Scene area={area} objects={objects} dragState={dragState} />
+          <Scene area={area} objects={objects} dragState={dragState} selectObjectRef={selectObjectRef} />
         </Provider>
       </Canvas>
       {context.current && context.current.gl && (
@@ -108,21 +115,47 @@ interface SceneProps {
   area: Area;
   objects: any[];
   dragState: React.MutableRefObject<any>;
+  selectObjectRef: React.MutableRefObject<((objects: Object3D[]) => void) | undefined>;
 }
 
-const Scene = memo(({ area, objects, dragState }: SceneProps) => {
+const Scene = memo(({ area, objects, dragState, selectObjectRef }: SceneProps) => {
+  const { scene, camera } = useThree();
+
+  const outlineEffect = useMemo(() => new OutlineEffect(scene, camera, {
+    blendFunction: BlendFunction.SCREEN,
+    opacity: 1,
+    edgeStrength: 4,
+    pulseSpeed: 0,
+    visibleEdgeColor: 0xffffff,
+    hiddenEdgeColor: 0xb9b9b9,
+    height: 720,
+    blur: false,
+    xRay: true
+  }), [scene, camera]);
+
+  const selectObject = useCallback((objects) => {
+    outlineEffect.selection.set(objects);
+  }, [outlineEffect]);
+
+  useEffect(() => {
+    selectObjectRef.current = selectObject;
+  }, [selectObject, selectObjectRef]);
+
   return (
     <>
-      <ZoneEditorObjects droppedAssets={objects} dragState={dragState} />
+      <AreaEditorObjects droppedAssets={objects} dragState={dragState} selectObject={selectObject} />
       <MapControlsCamera name={`camera.${area.area_id}`} />
       <EditorEnvironment />
       <Suspense fallback={null}>
         <StandardEffects
-          smaa                      // Can be a boolean (default=true)
-          ao                        // Can be a boolean or all valid postprocessing AO props (default=true)
-          bloom                     // Can be a boolean or all valid postprocessing Bloom props (default=true)
-          edgeDetection={0.1}       // SMAA precision (default=0.1)
-          bloomOpacity={1}          // Bloom blendMode opacity (default=1)
+          smaa                
+          ao                  
+          bloom               
+          edgeDetection={0.1} 
+          bloomOpacity={1}    
+          effects={(e) => {
+            return [...e, outlineEffect];
+          }}
         />
       </Suspense>
     </>

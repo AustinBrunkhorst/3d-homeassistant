@@ -5,7 +5,7 @@ import * as actions from "store/actions/areaEditor.actions";
 import { selectIsSelectionDisabled } from "store/selectors/areaEditor.selector";
 import ThreeTransformControls from "../TransformControls";
 
-export function useSceneObject(id: number, threeObject?: Object3D) {
+export function useSceneObject(id: number, threeObject?: Object3D, selectThreeObject?: (objects: Object3D[]) => void) {
   const dispatch = useDispatch();
   const isSelectionDisabled = useSelector(selectIsSelectionDisabled);
 
@@ -38,10 +38,22 @@ export function useSceneObject(id: number, threeObject?: Object3D) {
       return;
     }
 
+    if (selectThreeObject) {
+      const objects: Object3D[] = [];
+
+      e.eventObject.traverse((object: Object3D) => {
+        if (object.type === "Mesh") {
+          objects.push(object);
+        }
+      });
+
+      selectThreeObject(objects);
+    }
+
     e.stopPropagation();
 
     dispatch(actions.selectObject({ id }))
-  }, [id, dispatch, isSelectionDisabled]);
+  }, [isSelectionDisabled, selectThreeObject, dispatch, id]);
 
   const timerHandle = useRef<any>(0);
 

@@ -28,10 +28,10 @@ function getBrightnessFromState(light?: HassEntity) {
   return light.attributes.brightness / 255;
 }
 
-function Light({ id, entityId, selected, position, intensity, distance, decay }) {
+function Light({ id, entityId, selected, position, intensity, distance, decay, selectThreeObject }) {
   const lightEntity = useSelector(selectEntityById(entityId));
   const [ref, object] = useResource<PointLight>();
-  const { selectObject, renderTransformControls } = useSceneObject(id, object);
+  const { selectObject, renderTransformControls } = useSceneObject(id, object, selectThreeObject);
 
   const color = useMemo(() => getColorFromState(lightEntity), [lightEntity]);
   const brightness = useMemo(() => getBrightnessFromState(lightEntity), [lightEntity]);
@@ -75,7 +75,7 @@ function Light({ id, entityId, selected, position, intensity, distance, decay })
   </>;
 }
 
-function ZoneEditorObjects({ droppedAssets, dragState }) {
+function AreaEditorObjects({ droppedAssets, dragState, selectObject }) {
   const [, setState] = useState(dragState);
   const selectedObjects = useSelector(selectSelectedObjectIds);
 
@@ -95,9 +95,10 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
           intensity={intensity}
           distance={distance}
           decay={decay}
+          selectThreeObject={selectObject}
         />
       )),
-    [droppedAssets, selectedObjects]
+    [droppedAssets, selectObject, selectedObjects]
   );
 
   const models = useMemo(
@@ -111,9 +112,10 @@ function ZoneEditorObjects({ droppedAssets, dragState }) {
           rotation={rotation}
           scale={scale}
           selected={selectedObjects.includes(id)}
+          selectThreeObject={selectObject}
         />
       )),
-    [droppedAssets, selectedObjects]
+    [droppedAssets, selectObject, selectedObjects]
   );
 
   return (
@@ -164,21 +166,21 @@ const DropPreview = ({ object, position }: DropPreviewProps) => {
       )
       : (
         <mesh position={position}>
-          <sphereBufferGeometry attach="geometry" args={[0.25]} />
+          <sphereBufferGeometry attach="geometry" args={[0.01]} />
           <meshStandardMaterial
             attach="material"
-            color="red"
+            color="white"
             emissive={new Color("white")}
-            emissiveIntensity={10}
+            emissiveIntensity={0.01}
           />
         </mesh>
       )
   );
 }
 
-const SelectableAssetModel = ({ id, model, position, rotation, scale, selected }: any) => {
+const SelectableAssetModel = ({ id, model, position, rotation, scale, selected, selectThreeObject }: any) => {
   const [object, setObject] = useState<Object3D>();
-  const { selectObject, renderTransformControls } = useSceneObject(id, object);
+  const { selectObject, renderTransformControls } = useSceneObject(id, object, selectThreeObject);
 
   return (
     <>
@@ -196,4 +198,4 @@ const SelectableAssetModel = ({ id, model, position, rotation, scale, selected }
   );
 };
 
-export default ZoneEditorObjects;
+export default AreaEditorObjects;

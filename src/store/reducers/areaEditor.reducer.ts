@@ -119,6 +119,7 @@ const reducer = createReducer(initialState)
   );
 
 export default undoable(reducer, {
+  ignoreInitialState: true,
   undoType: getType(actions.undo),
   redoType: getType(actions.redo),
   filter: isActionOf([
