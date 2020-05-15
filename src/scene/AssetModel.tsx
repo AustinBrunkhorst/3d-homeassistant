@@ -1,13 +1,13 @@
 import React, { forwardRef, useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
 import { loadModelAsset } from "core/resourceManager";
-import { Model } from "store/models/areaEditor.model";
+import { Model, Vector3, Quaternion } from "store/models/areaEditor.model";
 
 export interface ModelAssetProps {
   model: Model;
-  position: THREE.Vector3;
-  rotation: THREE.Quaternion;
-  scale: THREE.Vector3;
+  position: Vector3;
+  rotation: Quaternion;
+  scale: Vector3;
   onClick?: (e: any) => void;
 }
 
@@ -51,7 +51,7 @@ const ModelAsset = forwardRef(
 
     const loadingObject = useMemo(
       () => (
-        <mesh position={position}>
+        <mesh position={new THREE.Vector3(position.x, position.y, position.z)}>
           <boxBufferGeometry attach="geometry" args={[0.25, 0.25, 0.25]} />
           <meshStandardMaterial
             attach="material"

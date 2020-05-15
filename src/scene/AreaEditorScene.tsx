@@ -48,6 +48,7 @@ export default function AreaEditorScene({ area }: AreaEditorSceneProps) {
   const { dragState, setContext: setDropTargetContext, context } = useAreaEditorDropTarget(generateId);
 
   const setContext = useCallback((context) => {
+    console.log('set context');
     context.gl.shadowMap.enabled = true;
     context.gl.shadowMap.type = PCFSoftShadowMap;
     
